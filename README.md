@@ -42,6 +42,7 @@ cp .env.example .env
 
 - `SECRET_KEY`：Django 密钥，生产环境必须修改
 - `DEBUG`：本地开发保持 `True`
+- `ROLE_LOGIN_ENABLED`：是否开启登录页角色一键登录，建议仅本地/演示环境开启
 - `ALLOWED_HOSTS`：多个值用英文逗号分隔
 - `DATABASE_URL`：默认使用 SQLite
 - `PORT`：Gunicorn 监听端口，默认 `8000`

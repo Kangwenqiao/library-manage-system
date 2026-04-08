@@ -2,66 +2,221 @@
 
 {% block title %} 登录 {% endblock %}
 
+{% block stylesheets %}
+<style>
+    .auth-wrapper .auth-content.auth-content-wide {
+        width: min(1040px, calc(100vw - 32px));
+        max-width: 1040px;
+        padding: 20px;
+    }
+
+    .auth-login-card {
+        width: 100%;
+        border: 0;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 18px 45px rgba(25, 42, 70, 0.12);
+    }
+
+    .auth-login-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+    }
+
+    .auth-login-panel {
+        padding: 40px 36px;
+    }
+
+    .auth-login-panel + .auth-login-panel {
+        border-left: 1px solid #e8edf5;
+        background: linear-gradient(180deg, #f8fbff 0%, #f4f8ff 100%);
+    }
+
+    .auth-login-form {
+        max-width: 360px;
+        margin: 0 auto;
+    }
+
+    .auth-role-list {
+        display: grid;
+        gap: 14px;
+    }
+
+    .auth-role-card {
+        border: 1px solid #e6eef7;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: left;
+        background: #ffffff;
+        transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .auth-role-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #e8f1ff;
+        color: #1877f2;
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    .auth-role-card p {
+        min-height: 54px;
+        line-height: 1.55;
+        font-size: 13px;
+    }
+
+    .auth-role-card:hover {
+        transform: translateY(-2px);
+        border-color: #cbdcff;
+        box-shadow: 0 10px 24px rgba(24, 119, 242, 0.10);
+    }
+
+    .auth-login-tip {
+        max-width: 360px;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 991.98px) {
+        .auth-wrapper .auth-content.auth-content-wide {
+            width: min(760px, calc(100vw - 24px));
+            padding: 12px;
+        }
+
+        .auth-login-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .auth-login-panel {
+            padding: 28px 22px;
+        }
+
+        .auth-login-panel + .auth-login-panel {
+            border-left: 0;
+            border-top: 1px solid #e8edf5;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .auth-wrapper .auth-content.auth-content-wide {
+            width: calc(100vw - 16px);
+            padding: 8px;
+        }
+
+        .auth-login-panel {
+            padding: 24px 16px;
+        }
+
+        .auth-role-card p {
+            min-height: 0;
+        }
+    }
+</style>
+{% endblock stylesheets %}
+
 {% block content %}   
 
     <div class="auth-wrapper">
-        <div class="auth-content">
+        <div class="auth-content auth-content-wide">
             <div class="auth-bg">
                 <span class="r"></span>
                 <span class="r s"></span>
                 <span class="r s"></span>
                 <span class="r"></span>
             </div>
-            <div class="card">
-                <div class="card-body text-center">
-                    <div class="mb-4">
-                        <i class="feather icon-unlock auth-icon"></i>
-                    </div>
-                    <h3 class="mb-4">登录</h3>
+            <div class="card auth-login-card">
+                <div class="card-body p-0">
+                    <div class="auth-login-grid">
+                        <div class="auth-login-panel">
+                            <div class="text-center auth-login-form">
+                                <div class="mb-4">
+                                    <i class="feather icon-unlock auth-icon"></i>
+                                </div>
+                                <h3 class="mb-3">账号登录</h3>
 
-                    <span class="mb-0 text-muted">
+                                <span class="mb-0 text-muted auth-login-tip">
+                                    {% if msg %}
+                                    {{ msg | safe }}
+                                    {% else %}
+                                        输入用户名和密码
+                                    {% endif %}
+                                </span>
 
-                        
-                        {% if msg %}
-                        {{ msg | safe }}
-                        {% else %}
-                            输入用户名和密码
-                        {% endif %} 
-                   
+                                <br />
+                                <br />
 
-                    </span>
+                                <form role="form" method="post" action="" class="text-left">
+                                    {% csrf_token %}
 
-                    <br />
-                    <br />
+                                    <div class="input-group mb-3">
+                                        {{ form.username }}
+                                    </div>
 
-                    <form role="form" method="post" action="">
+                                    <div class="input-group mb-4">
+                                        {{ form.password }}
+                                    </div>
 
-                        {% csrf_token %}                   
+                                    <div class="form-group text-left">
+                                        <div class="checkbox checkbox-fill d-inline">
+                                            <input type="checkbox" name="checkbox-fill-1" id="checkbox-fill-a1" checked="">
+                                            <label for="checkbox-fill-a1" class="cr"> Save Details</label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" name="login" class="btn btn-primary shadow-2 mb-4 btn-block">登录</button>
+                                </form>
 
-                        <div class="input-group mb-3">
-                            {{ form.username }}
-                        </div>
-                        
-                        <div class="input-group mb-4">
-                            {{ form.password }}
-                        </div>
-                        
-                        <div class="form-group text-left">
-                            <div class="checkbox checkbox-fill d-inline">
-                                <input type="checkbox" name="checkbox-fill-1" id="checkbox-fill-a1" checked="">
-                                <label for="checkbox-fill-a1" class="cr"> Save Details</label>
+                                <p class="mb-0 text-muted">没有账号？ <a href="{% url 'register' %}" >注册</a></p>
                             </div>
                         </div>
-                        <button type="submit" name="login" class="btn btn-primary shadow-2 mb-4">登录</button>
 
-                    </form>
+                        <div class="auth-login-panel">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <h4 class="mb-0">角色快速进入</h4>
+                                    {% if role_login_enabled %}
+                                    <span class="badge badge-info">演示模式</span>
+                                    {% endif %}
+                                </div>
 
-                    <p class="mb-0 text-muted">没有账号？ <a href="{% url 'register' %}" >注册</a></p>
-                    <br />
-                    <p class="mb-2 text-muted">
-                        &copy; <a target="_blank" href="">Tobie</a>
-                        - <a target="_blank" href="">2025</a>.
-                    </p>
+                                <p class="text-muted mb-4">
+                                    {% if role_login_enabled %}
+                                    点击下面的角色卡片，系统会自动登录到对应权限视角。
+                                    {% else %}
+                                    当前环境已关闭角色一键登录。
+                                    {% endif %}
+                                </p>
+
+                                <div class="auth-role-list">
+                                    {% for role in role_logins %}
+                                    <div class="auth-role-card">
+                                        <div class="auth-role-icon">
+                                            <i class="{{ role.icon }}"></i>
+                                        </div>
+                                        <h5 class="mb-2">{{ role.label }}</h5>
+                                        <p class="text-muted mb-3">{{ role.description }}</p>
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <small class="text-muted">账号：{{ role.username }}</small>
+                                            <a href="{% url 'role_login' role.key %}" class="btn btn-outline-primary btn-sm">直接登录</a>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="alert alert-secondary mb-0">当前没有可用的角色快捷入口。</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <p class="mb-2 text-muted">
+                            &copy; <a target="_blank" href="">Tobie</a>
+                            - <a target="_blank" href="">2025</a>.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

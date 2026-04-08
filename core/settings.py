@@ -22,6 +22,7 @@ SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
+ROLE_LOGIN_ENABLED = config('ROLE_LOGIN_ENABLED', default=DEBUG, cast=bool)
 
 ALLOWED_HOSTS = get_env_list('ALLOWED_HOSTS', '127.0.0.1,localhost')
 CSRF_TRUSTED_ORIGINS = get_env_list('CSRF_TRUSTED_ORIGINS', '')
