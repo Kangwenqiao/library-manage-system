@@ -1,0 +1,147 @@
+{% extends "layouts/base.html" %}
+{% load crispy_forms_tags %}
+{% block title %} Management{% endblock %} 
+
+{% block stylesheets %}
+<!-- <link rel="stylesheet" href="/static/assets/css/card.css"> -->
+
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="pcoded-content">
+    <div class="pcoded-inner-content">
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h5 class="m-b-10">会员管理</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <!-- [ breadcrumb ] end -->
+        <div class="main-body">
+            <div class="page-wrapper">
+                <div class="row">
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-user-tie"></i> 会员信息  </h5>
+                            </div>
+
+                            <div class="card-block">
+                                <div class="col-md-12">
+                                    <h5 class="mt-2">{{member.name}}</h5>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-12">
+                                            <ul class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                                                <li><a class="nav-link text-left active" id="basic-info-tab" data-toggle="pill" href="#basic-info" role="tab" aria-controls="basic-info" aria-selected="true">个人概述</a></li>
+                                                <!-- <li><a class="nav-link text-left" id="contact-tab" data-toggle="pill" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Contact</a></li> -->
+                                                <li><a class="nav-link text-left" id="card-tab" data-toggle="pill" href="#card" role="tab" aria-controls="card" aria-selected="false">会员卡信息</a></li>
+                                                <li><a class="nav-link text-left" id="audit-trail-tab" data-toggle="pill" href="#audit-trail" role="tab" aria-controls="audit-trail" aria-selected="false">审查追踪</a></li>
+                                                <li><a class="nav-link text-left" id="audit-trail-tab" data-toggle="pill" href="#borrow-record" role="tab" aria-controls="borrow-record" aria-selected="false">借阅历史记录</a></li>
+
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-9 col-sm-12">
+                                            <div class="tab-content" id="v-pills-tabContent">
+                                                <div class="tab-pane fade show active" id="basic-info" role="tabpanel">
+                                                    <div class='row'>
+                                                        <div class='col-6'>
+                                                            <p>姓名： {{member.name}} </p>
+                                                            <p>性别： {{member.get_gender_display}} </p>
+                                                            <p>年龄： {{member.age}} </p>
+                                                            <p>城市： {{member.city}} </p>
+                                                        </div>
+                                                        <div class='col-6'>
+                                                            <p>电话号码： {{member.phone_number}} </p>
+                                                            <p>电子邮箱： {{member.email}} </p>
+                                                        </div>
+                                                    </div>                                                
+                                                </div>
+                                                <!-- <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+                                                    <p class="mb-0">Culpa dolor voluptate do laboris laboris irure reprehenderit id incididunt duis pariatur mollit aute magna pariatur consectetur. Eu veniam duis non ut dolor deserunt commodo et minim in quis laboris ipsum velit id veniam. Quis ut consectetur adipisicing officia excepteur non sit. Ut et elit aliquip labore Lorem enim eu. Ullamco mollit occaecat dolore ipsum id officia mollit qui esse anim eiusmod do sint minim consectetur qui.</p>
+                                                </div> -->
+
+                                                <div class="tab-pane fade" id="card" role="tabpanel" aria-labelledby="card-tab">
+                                                    <p>卡ID： {{member.card_id}}</p>
+                                                    <p>卡号： {{member.card_number}}</p>
+                                                    <p>创建时间： {{member.created_at| date:"Y/m"}} </p>
+                                                    <p>过期时间： {{member.expired_at| date:"Y/m"}}</p>
+                                                
+                                                </div>
+                                                <div class="tab-pane fade" id="audit-trail" role="tabpanel" aria-labelledby="audit-trail-tab">
+                                                    <p>创建时间： {{member.created_at| date:"Y-m-d H:i"}} </p>
+                                                    <p>创建者： {{member.created_by}} </p>
+                                                    <br>
+                                                    <p>更新时间： {{member.updated_at | date:"Y-m-d H:i"}}</p>
+                                                    <p>更新者： {{member.updated_by}} </p>
+                                                </div>
+
+                                                <div class="tab-pane fade" id="borrow-record" role="tabpanel" aria-labelledby="audit-trail-tab">
+                                                    {% if related_records %}
+                                                    <table class="table table-sm">
+                                                       <thead>
+                                                         <tr>
+                                                           <th scope="col">借阅人</th>
+                                                           <th scope="col">卡号</th>
+                                                           <th scope="col">书名</th>
+                                                           <th scope="col">借阅时间 - 需归还时间</th>
+                                                           <th scope="col">当前状态</th>
+                                                           <th scope="col">实际归还时间</th>
+                                                           <th scope="col">###</th>
+                                                         </tr>
+                                                       </thead>
+                                                       <tbody>
+                                                        
+                                                        {% for record in related_records %}
+                                                        <tr>
+                                                            <td>{{record.borrower}} </td>
+                                                            <td>{{record.borrower_card}}</td>
+                                                            <td>{{record.book}}</td>
+                                                            <td>{{record.start_day | date:"Y/m/d"}} - {{record.end_day | date:"Y/m/d"}}</td>
+                                                            <td>{{record.get_open_or_close_display}}</td>
+                                                            <td>{{record.closed_at | date:"Y/m/d"}}</td>
+                                                            {% if record.final_status == "Delayed" %}
+                                                                <td>{{record.final_status}}, {{record.delay_days}} days</td>
+                                                            {% else %}
+                                                                <td>{{record.final_status}}</td>
+                                                            {% endif %}
+                                                          </tr>
+                                      
+                                                       {% endfor %}
+                                                       {% else %}
+                                                       <h4 class="text-center">无记录</h4>
+                                                       {% endif  %}
+                                                       </tbody>
+                                                     </table>
+                                             
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            
+
+                        </div>
+                        <a href="{% url 'member_list' %}" class='btn btn-dark'>返回</a>
+                        <a href="{% url 'member_update' member.pk %}" class='btn btn-dark'>更新</a>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

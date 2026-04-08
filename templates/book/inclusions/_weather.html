@@ -1,0 +1,26 @@
+<article class="media float-right mt-2">
+    <div class="media-left">
+        <figure class="image is-30x30">
+            <img src="http://openweathermap.org/img/w/{{ Guangzhou_weather.icon }}.png" alt="Image">
+        </figure>
+    </div>
+    <div class="media-content">
+        <div class="content">
+            <p>
+                <span class="title">{{ Guangzhou_weather.city }}, {{ Guangzhou_weather.country }}</span>
+                <br>
+                <span class="subtitle">{{ Guangzhou_weather.temperature }} °C, {{ Guangzhou_weather.description }}</span>
+            </p>
+        </div>
+    </div>
+
+{#<div id="openweathermap-widget-8"></div>#}
+{#<script>window.myWidgetParam ? window.myWidgetParam : window.myWidgetParam = [];#}
+{#    window.myWidgetParam.push({id: 8,cityid: '1809858',appid: '32ef9e7529d18b0e020660d069fa0bcb',units: 'metric',containerid: 'openweathermap-widget-8',  });#}
+{#    (function() {#}
+{#        const script = document.createElement('script');#}
+{#        script.async = true;script.charset = "utf-8";#}
+{#        script.src = "//openweathermap.org/themes/openweathermap/assets/vendor/owm/js/weather-widget-generator.js";#}
+{#        const s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(script, s);  })();</script>#}
+  
+  </article>

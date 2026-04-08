@@ -1,0 +1,118 @@
+{% load book_extras %}
+    <nav class="pcoded-navbar">
+        <div class="navbar-wrapper">
+            <div class="navbar-brand header-logo">
+                <a target="_blank" 
+                   href="" class="b-brand">
+                    <div class="b-bg">
+                        <i class="feather icon-trending-up"></i>
+                    </div>
+                    <span class="b-title">图书管理系统</span>
+                </a>
+                <a class="mobile-menu" id="mobile-collapse" href="javascript:"><span></span></a>
+            </div>
+            <div class="navbar-content scroll-div">
+                <ul class="nav pcoded-inner-navbar">
+                    <li class="nav-item pcoded-menu-caption">
+                        <label>菜单</label>
+                    </li>
+                    <li 
+                        class="nav-item {% if 'index' in segment %} active {% endif %}">
+                        <a href="/" class="nav-link "><span class="pcoded-micon"><i class="feather icon-home"></i></span><span class="pcoded-mtext">主页</span></a>
+                    </li>
+                    
+                    {% if request.user.is_superuser %}
+                    <!-- 管理端菜单 -->
+                    <li 
+                        class="nav-item {% if request.resolver_match.url_name == 'chart' %} active {% endif %}">
+                        <a href="{% url 'chart' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-pie-chart"></i></span><span class="pcoded-mtext">统计图表</span></a>
+                    </li>
+                    
+                    <li class="nav-item pcoded-menu-caption">
+                        <label>系统管理</label>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'record_list' %} active {% endif %}">
+                        <a href="{% url 'record_list' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-file-text"></i></span><span class="pcoded-mtext">借阅记录管理</span></a>
+                    </li>
+
+                    <li class="nav-item pcoded-hasmenu {% if request.resolver_match.url_name == 'book_list' or request.resolver_match.url_name == 'book_create' or request.resolver_match.url_name == 'book_update' or request.resolver_match.url_name == 'book_delete' or request.resolver_match.url_name == 'book_detail' %} active pcoded-trigger {% endif %}">
+                        <a href="javascript:" class="nav-link "><span class="pcoded-micon"><i class="feather icon-box"></i></span><span class="pcoded-mtext">图书管理</span></a>
+                        <ul class="pcoded-submenu">
+                            <li class=""><a href="{% url 'book_list' %}" class="">所有书籍</a></li>
+                            <li class=""><a href="{% url 'book_create' %}" class="">添加书籍</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item pcoded-hasmenu {% if request.resolver_match.url_name == 'category_list' or request.resolver_match.url_name == 'category_create' %} active pcoded-trigger {% endif %}">
+                        <a href="javascript:" class="nav-link "><span class="pcoded-micon"><i class="feather icon-layers"></i></span><span class="pcoded-mtext">分类管理</span></a>
+                        <ul class="pcoded-submenu">
+                            <li class=""><a href="{% url 'category_list' %}" class="">所有分类</a></li>
+                            <li class=""><a href="{% url 'category_create' %}" class="">添加分类</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item pcoded-hasmenu {% if request.resolver_match.url_name == 'publisher_list' or request.resolver_match.url_name == 'publisher_create' %} active pcoded-trigger {% endif %}">
+                        <a href="javascript:" class="nav-link "><span class="pcoded-micon"><i class="feather icon-share-2"></i></span><span class="pcoded-mtext">出版商管理</span></a>
+                        <ul class="pcoded-submenu">
+                            <li class=""><a href="{% url 'publisher_list' %}" >所有出版商</a></li>
+                            <li class=""><a href="{% url 'publisher_create' %}" >添加出版商</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item pcoded-hasmenu {% if request.resolver_match.url_name == 'member_list' or request.resolver_match.url_name == 'member_create' %} active pcoded-trigger {% endif %}">
+                        <a href="javascript:" class="nav-link "><span class="pcoded-micon"><i class="feather icon-users"></i></span><span class="pcoded-mtext">会员管理</span></a>
+                        <ul class="pcoded-submenu">
+                            <li class=""><a href="{% url 'member_list' %}" class="">所有会员</a></li>
+                            <li class=""><a href="{% url 'member_create' %}" class="">添加会员</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item pcoded-menu-caption">
+                        <label>高级设置</label>
+                    </li>
+                    <li  class="nav-item {% if request.resolver_match.url_name == 'user_activity_list' %} active {% endif %}">
+                        <a href="{% url 'user_activity_list' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-list"></i></span><span class="pcoded-mtext">操作日志</span></a>
+                    </li>
+                    <li  class="nav-item {% if request.resolver_match.url_name == 'data_center' %} active {% endif %}">
+                        <a href="{% url 'data_center' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-download"></i></span><span class="pcoded-mtext">数据导出</span></a>
+                    </li>
+                    <li  class="nav-item {% if request.resolver_match.url_name == 'employees_list' %} active {% endif %}">
+                        <a href="{% url 'employees_list' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-user-check"></i></span><span class="pcoded-mtext">员工管理</span></a>
+                    </li>
+                    {% else %}
+                    <!-- 借阅端菜单 -->
+                    <li class="nav-item pcoded-menu-caption">
+                        <label>我的借阅</label>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'record_list' %} active {% endif %}">
+                        <a href="{% url 'record_list' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-book"></i></span><span class="pcoded-mtext">我的借阅记录</span></a>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'record_create' %} active {% endif %}">
+                        <a href="{% url 'record_create' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-plus-circle"></i></span><span class="pcoded-mtext">借书申请</span></a>
+                    </li>
+                    
+                    <li class="nav-item pcoded-menu-caption">
+                        <label>图书查询</label>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'book_list' %} active {% endif %}">
+                        <a href="{% url 'book_list' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-search"></i></span><span class="pcoded-mtext">图书检索</span></a>
+                    </li>
+
+                    <li class="nav-item pcoded-menu-caption">
+                        <label>个人中心</label>
+                    </li>
+                    {% if request.user.profile.id %}
+                    <li  class="nav-item {% if request.resolver_match.url_name == 'profile_detail' %} active  {% endif %}">
+                        <a href="{% url 'profile_detail' request.user.profile.id %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-user"></i></span><span class="pcoded-mtext">个人信息</span></a>
+                    </li>
+                    {% else %}
+                    <li  class="nav-item {% if request.resolver_match.url_name == 'profile_create' %} active  {% endif %}">
+                        <a href="{% url 'profile_create' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-user-plus"></i></span><span class="pcoded-mtext">完善个人资料</span></a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+
+                </ul>
+            </div>
+        </div>
+    </nav>

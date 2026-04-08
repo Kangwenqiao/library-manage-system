@@ -1,0 +1,139 @@
+{% extends "layouts/base.html" %}
+{% load book_extras %}
+
+{% block title %} Borrow Records {% endblock %} }
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="pcoded-content">
+    <div class="pcoded-inner-content">
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h5 class="m-b-10">{% if request.user.is_superuser %}所有借阅记录{% else %}我的借阅记录{% endif %}</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <br>
+        <div class="main-body">
+            <div class="page-wrapper">
+                <div class="row">
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>总共 {{count_total}} 条记录</h5>
+                            </div>
+                            {% show_messages %}
+
+
+                            <div class="card-block ">
+                                <div class='row'>
+                                    <div class="col-8">
+                                        <b>排序方式： </b>
+                                        <a href="{% url 'record_list' %}?search={{search}}&orderby=id">编号</a>  |
+                                        {% if request.user.is_superuser %}
+                                        <a href="{% url 'record_list' %}?search={{ search }}&orderby=borrower">姓名</a> |
+                                        {% endif %}
+                                        <a href="{% url 'record_list' %}?search={{ search }}&orderby=book">书籍</a> |
+                                        <a href="{% url 'record_list' %}?search={{ search }}&orderby=start_day">借阅日期</a> |
+                                        <a href="{% url 'record_list' %}?search={{ search }}&orderby=end_day">应归还日期</a>|
+                                        <a href="{% url 'record_list' %}?search={{ search }}&orderby=closed_at">实际归还日期</a> |
+                                        
+                                    </div>
+   
+                                    <div class="col-auto">
+                                        <form class="form-inline mb-2">
+                                            <div class="form-group  mb-2">
+                                                <input type="text" 
+                                                       class="form-control" 
+                                                       name="search",
+                                                       id='search',
+                                                       placeholder="搜索书名{% if request.user.is_superuser %}或卡号{% endif %}",
+                                                       value={{search}}
+                                                       >
+                                            </div>
+                                            <button type="submit" class="btn btn-secondary mb-2 ml-1 btn-sm">搜索</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive table-hover">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                {% if request.user.is_superuser %}
+                                                <th>姓名</th>
+                                                <th>卡号</th>
+                                                <th>电话号码</th>
+                                                {% endif %}
+                                                <th>书籍</th>
+                                                <th>数量</th>
+                                                <th>借阅日期</th>
+                                                <th>归还日期</th>
+                                                <th>状态</th>
+                                                <th>延期归还</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            
+                                            {% for record in records %}
+                                            <tr>
+                                                {% if request.user.is_superuser %}
+                                                <td>{{record.borrower}}</td>  
+                                                <td>{{record.borrower_card}}</td>  
+                                                <td>{{record.borrower_phone_number}}</td>
+                                                {% endif %}
+                                                <td>{{record.book_title|truncatewords:2}}</td>
+                                                <td>{{record.quantity}}</td>
+                                                <td>{{record.start_day|date:"Y-m-d"}}</td>
+                                                <td>{{record.end_day|date:"Y-m-d"}}</td>
+                                                <td>{{record.get_open_or_close_display}}</td>
+                                                {% if record.return_status == "Delayed" %}
+                                                <td class='table-danger'>{{record.return_status}} {{record.get_delay_number_days}} 天</td>
+                                                {% else %}
+                                                <td class='table-success'>{{record.return_status}}</td>
+                                                {% endif %}
+                                                <td>
+                                                    <a href="{% url 'record_detail' record.pk %}" class="badge badge-warning badge-bg"><i class="feather icon-eye"></i>&nbsp;查看</a>
+                                                    {% if request.user.is_superuser %}
+                                                    <a href="{% url 'record_delete' record.pk %}" class="badge badge-danger"><i class="feather icon-trash-2"></i>&nbsp;删除</a>
+                                                    {% endif %}
+                                                </td>
+                                                    
+                                            </tr>
+                                            {% endfor %}
+
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="row">
+                                    <div class='col-6'>
+                                        <a href="{% url 'record_create' %}" class='btn btn-primary'>{% if request.user.is_superuser %}添加新记录{% else %}申请借书{% endif %}</a>
+                                    </div>
+                                    <div class='col-6'>
+      
+                                        {% show_pagination %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}{% endblock javascripts %}

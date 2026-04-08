@@ -1,0 +1,419 @@
+{% extends "layouts/base.html" %}
+{% load book_extras %}
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <div class="pcoded-content">
+        <div class="pcoded-inner-content">
+
+            <div class="main-body">
+                <br>                
+                <div class="page-wrapper">
+                    {% if request.user.is_superuser %}
+                    <!-- 管理端 Dashboard -->
+                    <div class="row">
+                        <!--  Count Books  -->
+                        <div class='col-md-3'>
+                            <div class="card">
+                                <div class="card-block">
+                                    <div class="row d-flex align-items-center">
+                                        <div class="col-auto">
+                                            <i class="fas fa-book f-40 text-c-blue "></i>
+                                        </div>
+                                        <div class="col">
+                                            <h3 class="f-w-300">{{data_count.book}}</h3>
+                                            <span class="d-block text-uppercase">书籍总数</span>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <!-- Count Members -->
+                        <div class='col-md-3'>
+                            <div class="card">
+                                <div class="card-block">
+                                    <div class="row d-flex align-items-center">
+                                        <div class="col-auto">
+                                            <i class="fas fa-user-friends f-40 " style="color:coral"></i>
+                                        </div>
+                                        <div class="col">
+                                            <h3 class="f-w-300">{{data_count.member}}</h3>
+                                            <span class="d-block text-uppercase">会员总数</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Count Categories -->
+                        <div class='col-md-3'>
+                        <div class="card">
+                            <div class="card-block">
+                                <div class="row d-flex align-items-center">
+                                    <div class="col-auto">
+                                        <i class="fas fa-cubes f-40 text-c-purple"></i>
+                                    </div>
+                                    <div class="col">
+                                        <h3 class="f-w-300">{{data_count.category}}</h3>
+                                        <span class="d-block text-uppercase">书籍总类别</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                        <!-- Count Publishers -->
+                        <div class='col-md-3'>                    
+                            <div class="card">
+                                <div class="card-block">
+                                    <div class="row d-flex align-items-center">
+                                        <div class="col-auto">
+                                            <i class=" feather icon-file-text f-40 text-c-green"></i>                                
+                                        </div>
+                                        <div class="col">
+                                            <h3 class="f-w-300">{{data_count.publisher}}</h3>
+                                            <span class="d-block text-uppercase">出版商总数</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-8 col-md-6">
+                            <!-- Recent Closed Records -->
+                            <div class="card Recent-Users">
+                                <div class="card-header">
+                                    <h5>最近归还记录</h5>
+                                </div>
+                                <div class="card-block px-0 py-3">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover ">
+                                            <thead class="">
+                                                <tr>
+                                                    <th>会员信息</th>
+                                                    <th>书籍</th>
+                                                    <th>借阅日期 / 结束日期 </th>
+                                                    <th>归还时间</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for r in new_closed_records %}
+                                                <tr class="unread">
+                                                 <td>
+                                                        <p class="mb-1"><a href="{% url 'record_detail' r.pk %}">{{ r.borrower}}</a></p>
+                                                        <p class="m-0"><i class="fas fa-credit-card" style="color: Tomato;"></i>&nbsp;{{r.borrower_card}}&nbsp;&nbsp;<i class="fas fa-mobile" style="color: cornflowerblue;"></i>&nbsp;{{r.borrower_phone_number}}</p>
+                                                 </td>
+                                                    <td>{{r.book_title |truncatewords:2}}</td>
+                                                    <td>{{r.start_day|date:"Y/m/d" }} - {{r.end_day|date:"Y/m/d" }} </td>
+                                                    <td>{{r.closed_at | timesince}}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card card-event">
+                                <div class="card-block">
+                                    <div class="row align-items-center justify-content-center">
+                                        <div class="col">
+                                            <h5 class="m-0">本周更新的书籍</h5>
+                                        </div>
+                                        <div class="col-auto">
+                                            <label class="label theme-bg2 text-white f-14 f-w-400 float-right">34%</label>
+                                        </div>
+                                    </div>
+                                    <h2 class="mt-3 f-w-300">45<sub class="text-muted f-14">本书</sub></h2>
+                                    <h6 class="text-muted mt-4 mb-0">感兴趣的读者可以来借阅喔 (๑•̀ㅂ•́)و✧</h6>
+                                    <i class="fab fa-angellist text-c-purple f-50"></i>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-block border-bottom">
+                                    <div class="row d-flex align-items-center">
+                                        <div class="col-auto">
+                                            <i class="fas fa-user f-30 " style="color:coral"></i>
+                                        </div>
+                                        <div class="col">
+                                            <h3 class="mt-2 f-w-300">{{new_members_thisweek}} <sub class="text-muted f-15 ">新会员</sub></h3>
+                                            <span class="d-block text-uppercase">本周新增</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-block">
+                                    <div class="row d-flex align-items-center">
+                                        <div class="col-auto">
+                                            <i class="fas fa-book f-30 text-c-blue "></i>
+                                        </div>
+                                        <div class="col">
+                                            <h3 class="mt-2 f-w-300">{{lent_books_thisweek}} <sub class="text-muted f-15 ">本书被借阅</sub></h3>
+                                            <span class="d-block text-uppercase">本周借阅</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <div class="col-xl-12 col-md-12 m-b-30">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>最近动态</h5>
+                                </div>
+                                <div class="card-block ">
+                                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link " id="home-tab" data-toggle="tab" href="#new_member" role="tab" aria-controls="home" aria-selected="false">新会员</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link " id="profile-tab" data-toggle="tab" href="#stock" role="tab" aria-controls="profile" aria-selected="false">库存告急</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="contact-tab" data-toggle="tab" href="#logs" role="tab" aria-controls="contact" aria-selected="false">最近操作 </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link active show" id="return-tab" data-toggle="tab" href="#return" role="tab" aria-controls="return" aria-selected="true">本周应还 </a>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content" id="myTabContent">
+                                        <div class="tab-pane fade " id="new_member" role="tabpanel" aria-labelledby="home-tab">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>姓名</th>
+                                                        <th>性别</th>
+                                                        <th>年龄</th>
+                                                        <th>卡号 </th>
+                                                        <th>创建时间</th>
+                                                        <th>创建者</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for member in new_members %}
+                                                    <tr>
+                                                        <td><a href="{% url 'member_detail' member.pk %}">{{member.name}}</a></td>
+                                                        {% if member.gender == 'm' %}
+                                                        <td><i class="fas fa-mars "></i></td>
+                                                        {% else %}
+                                                        <td><i class="fas fa-venus"></i></td>
+                                                        {% endif %}
+                                                        <td>{{member.age}}</td>     
+                                                        <td>{{member.card_number}}</td>  
+                                                        <td>{{member.created_at| timesince}}</td>
+                                                        <td>{{member.created_by}}</td>                     
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="tab-pane fade " id="stock" role="tabpanel" aria-labelledby="profile-tab">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>书名</th>
+                                                        <th>作者</th>
+                                                        <th>数量</th>
+                                                        <th>位置</th>
+                                                        <th class="text-right">状态</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for book in short_inventory %}
+                                                    <tr>
+                                                        <td><a href="{% url 'book_detail' book.pk %}">{{book.title}}</a></td>
+                                                        <td>{{book.author}}</td>
+                                                        <td>{{book.quantity}}</td>     
+                                                        <td>{{book.floor_number}}楼 {{book.bookshelf_number}}号架</td>                       
+                                                        {% if book.quantity < 5 %}
+                                                        <td class="text-center"><i class="fas fa-exclamation-circle text-c-red f-20"></i></td>
+                                                        {% elif  book.quantity > 5 and book.quantity <= 10 %}
+                                                        <td class="text-center"><i class="fas fa-exclamation-circle text-c-purple f-20"></i></td>
+                                                        {% endif %}
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <!-- Recent Logs -->
+                                        <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="contact-tab">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>管理员</th>
+                                                        <th>活动内容</th>
+                                                        <th>发生时间</th>
+                                                        <th>类型</th>
+                                                        <th class="text-right"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for log in recent_user_activities %}
+                                                        <tr>   
+                                                            <td><img class="rounded-circle  m-r-10" style="width:30px;" src="{{user_avatar|get_item:log.created_by}}" >{{log.created_by}}</td>
+                                                            <td> {{log.detail}} </td>
+                                                            <td>{{ log.created_at | timesince }}</td>
+                                                            <td>{{log.get_operation_type_display}} </td>
+        
+                                                            {% ifequal log.operation_type "success" %}
+                                                                <td class="text-right"><i class="fas fa-circle text-c-green f-10"></i></td>
+                                                            {% endifequal %}
+        
+                                                            {% ifequal log.operation_type "warning" %}
+                                                                <td class="text-right"><i class="fas fa-circle text-c-yellow f-10"></i></td>
+                                                            {% endifequal %}
+        
+                                                            {% ifequal log.operation_type "danger" %}
+                                                                <td class="text-right"><i class="fas fa-circle text-c-red f-10"></i></td>
+                                                            {% endifequal %}
+
+                                                            {% ifequal log.operation_type "info" %}
+                                                                <td class="text-right"><i class="fas fa-circle text-c-blue f-10"></i></td>
+                                                            {% endifequal %}
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Return books this week -->
+                                        <div class="tab-pane fade active show" id="return" role="tabpanel" aria-labelledby="contact-tab">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>借阅人</th>
+                                                        <th>卡号</th>
+                                                        <th>电话号码</th>
+                                                        <th>书籍</th>
+                                                        <th>借阅时间</th>
+                                                        <th>应还时间</th>
+                                                        <th>状态</th>
+                                                        <th class="">操作</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for r in books_return_thisweek %}
+                                                        <tr>   
+                                                            <td><a href="{% url 'record_detail' r.pk %}">{{ r.borrower}}</a></td>
+                                                            <td>{{r.borrower_card}}</td>
+                                                            <td>{{r.borrower_phone_number}} </td>
+                                                            <td>{{r.book_title |truncatewords:2}}</td>
+                                                            <td>{{r.start_day|date:"Y-m-d" }} </td>
+                                                            <td>{{r.end_day|date:"Y-m-d" }} </td>
+                                                            {% if r.return_status == "Delayed" %}
+                                                            <td class='table-danger'>{{r.return_status}} {{r.get_delay_number_days}} 天</td>
+                                                            {% else %}
+                                                            <td class= 'table-success'>{{r.return_status}}</td>
+                                                            {% endif %}
+
+                                                            {% if r.open_or_close == 0 %}
+                                                            <td><a href="{% url 'record_detail' r.pk %}" class="badge badge-danger badge-bg"><i class="fa fa-times"></i>&nbsp;关闭</a></td>
+                                                            {% else %}
+                                                            <td>已归还</td>
+                                                            {% endif %}
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- 借阅端 Dashboard -->
+                    <div class="row">
+                        <div class='col-md-6'>
+                            <div class="card">
+                                <div class="card-block">
+                                    <div class="row d-flex align-items-center">
+                                        <div class="col-auto">
+                                            <i class="fas fa-book f-40 text-c-blue "></i>
+                                        </div>
+                                        <div class="col">
+                                            <h3 class="f-w-300">{{total_borrowed}}</h3>
+                                            <span class="d-block text-uppercase">累计借阅书籍</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='col-md-6'>
+                            <div class="card">
+                                <div class="card-block">
+                                    <div class="row d-flex align-items-center">
+                                        <div class="col-auto">
+                                            <i class="fas fa-clock f-40 text-c-green"></i>
+                                        </div>
+                                        <div class="col">
+                                            <h3 class="f-w-300">{{on_loan}}</h3>
+                                            <span class="d-block text-uppercase">当前借阅中</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-12 col-md-12">
+                            <div class="card Recent-Users">
+                                <div class="card-header">
+                                    <h5>我的最近借阅记录</h5>
+                                </div>
+                                <div class="card-block px-0 py-3">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover ">
+                                            <thead>
+                                                <tr>
+                                                    <th>书籍名称</th>
+                                                    <th>借阅日期</th>
+                                                    <th>应还日期</th>
+                                                    <th>状态</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for r in my_records %}
+                                                <tr class="unread">
+                                                    <td>{{r.book_title}}</td>
+                                                    <td>{{r.start_day|date:"Y-m-d"}}</td>
+                                                    <td>{{r.end_day|date:"Y-m-d"}}</td>
+                                                    <td>
+                                                        {% if r.open_or_close == 0 %}
+                                                        <span class="badge badge-warning">未归还</span>
+                                                        {% else %}
+                                                        <span class="badge badge-success">已归还</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="4" class="text-center">暂无借阅记录</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="text-center">
+                                        <br>
+                                        <a href="{% url 'record_list' %}" class="btn btn-primary btn-sm">查看全部记录</a>
+                                        <a href="{% url 'book_list' %}" class="btn btn-success btn-sm">去借书</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block javascripts %}{% endblock javascripts %}
