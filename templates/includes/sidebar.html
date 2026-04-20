@@ -23,11 +23,17 @@
                     
                     {% if request.user.is_superuser %}
                     <!-- 管理端菜单 -->
-                    <li 
+                    <li
                         class="nav-item {% if request.resolver_match.url_name == 'chart' %} active {% endif %}">
                         <a href="{% url 'chart' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-pie-chart"></i></span><span class="pcoded-mtext">统计图表</span></a>
                     </li>
-                    
+                    <li class="nav-item {% if request.resolver_match.url_name == 'rankings' %} active {% endif %}">
+                        <a href="{% url 'rankings' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-bar-chart-2"></i></span><span class="pcoded-mtext">借阅排行榜</span></a>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'ai_search' %} active {% endif %}">
+                        <a href="{% url 'ai_search' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-cpu"></i></span><span class="pcoded-mtext">AI 智能搜索</span></a>
+                    </li>
+
                     <li class="nav-item pcoded-menu-caption">
                         <label>系统管理</label>
                     </li>
@@ -96,6 +102,12 @@
                     </li>
                     <li class="nav-item {% if request.resolver_match.url_name == 'book_list' %} active {% endif %}">
                         <a href="{% url 'book_list' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-search"></i></span><span class="pcoded-mtext">图书检索</span></a>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'ai_search' %} active {% endif %}">
+                        <a href="{% url 'ai_search' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-cpu"></i></span><span class="pcoded-mtext">AI 智能搜索</span></a>
+                    </li>
+                    <li class="nav-item {% if request.resolver_match.url_name == 'rankings' %} active {% endif %}">
+                        <a href="{% url 'rankings' %}" class="nav-link "><span class="pcoded-micon"><i class="feather icon-bar-chart-2"></i></span><span class="pcoded-mtext">借阅排行榜</span></a>
                     </li>
 
                     <li class="nav-item pcoded-menu-caption">

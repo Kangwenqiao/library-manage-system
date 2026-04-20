@@ -53,19 +53,20 @@ def param_replace(context, **kwargs):
 
 @register.inclusion_tag('book/inclusions/_weather.html',takes_context=True)
 def show_weather(context):
-    url = 'https://api.openweathermap.org/data/2.5/weather?lat=23.116&lon=113.25&units=metric&lang=zh_cn&appid=32ef9e7529d18b0e020660d069fa0bcb'
-    r = requests.get(url).json()
     Guangzhou_weather = {}
-
-    if r['cod'] == 200:
-        Guangzhou_weather = {
-            'city': '广州',
-            'temperature': float("{0:.2f}".format(r['main']['temp'])),
-            'description': r['weather'][0]['description'],
-            'icon': r['weather'][0]['icon'],
-            'country': "China"
-        }
-
+    try:
+        url = 'https://api.openweathermap.org/data/2.5/weather?lat=23.116&lon=113.25&units=metric&lang=zh_cn&appid=32ef9e7529d18b0e020660d069fa0bcb'
+        r = requests.get(url, timeout=3).json()
+        if r.get('cod') == 200:
+            Guangzhou_weather = {
+                'city': '广州',
+                'temperature': float("{0:.2f}".format(r['main']['temp'])),
+                'description': r['weather'][0]['description'],
+                'icon': r['weather'][0]['icon'],
+                'country': "China"
+            }
+    except Exception:
+        pass
     return {'Guangzhou_weather': Guangzhou_weather}
 
 @register.filter(name='timesince')

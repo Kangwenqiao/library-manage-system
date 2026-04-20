@@ -10,7 +10,6 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import uuid
-from PIL import Image
 
 
 def default_borrow_end_day():
@@ -164,11 +163,24 @@ class Profile(models.Model):
 
         # 固定宽度缩放图片大小
         if self.profile_pic and not kwargs.get('update_fields'):
+            try:
+                from PIL import Image
+            except ImportError:
+                import logging
+                logging.getLogger(__name__).warning(
+                    "[依赖缺失] 头像缩放需要 Pillow，请运行: pip install Pillow。"
+                    "已跳过缩放，使用原图。"
+                )
+                return profile
             image = Image.open(self.profile_pic)
             (x, y) = image.size
             new_x = 400
             new_y = int(new_x * (y / x))
-            resized_image = image.resize((new_x, new_y), Image.ANTIALIAS)
+            resampling = getattr(Image, "Resampling", None)
+            if resampling is not None:
+                resized_image = image.resize((new_x, new_y), resampling.LANCZOS)
+            else:
+                resized_image = image.resize((new_x, new_y), Image.LANCZOS)
             resized_image.save(self.profile_pic.path)
 
         return profile
@@ -240,7 +252,6 @@ class BorrowRecord(models.Model):
             self.book_title = self.book
         self.periode =(self.end_day - self.start_day).days+1
         return super(BorrowRecord, self).save(*args, **kwargs)
-
 
 
 

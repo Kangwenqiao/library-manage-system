@@ -32,6 +32,7 @@ db.sqlite3-journal
 media/
 staticfiles/
 logging/*.log
+datacenter/*.csv
 
 # IDE / OS
 .DS_Store

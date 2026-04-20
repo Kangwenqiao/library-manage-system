@@ -1,0 +1,179 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} 借阅排行榜 {% endblock %}
+
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="pcoded-content">
+    <div class="pcoded-inner-content">
+        <div class="page-header">
+            <div class="page-block">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <div class="page-header-title">
+                            <h5 class="m-b-10">借阅排行榜</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="main-body">
+            <div class="page-wrapper">
+                <div class="row">
+                    <!-- 热门图书 TOP 10 -->
+                    <div class="col-xl-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>热门图书 TOP 10</h5>
+                            </div>
+                            <div class="card-block">
+                                <figure class="highcharts-figure">
+                                    <div id="top-books" style="height:450px"></div>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 活跃读者 TOP 10 -->
+                    <div class="col-xl-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>活跃读者 TOP 10</h5>
+                            </div>
+                            <div class="card-block">
+                                <figure class="highcharts-figure">
+                                    <div id="top-readers" style="height:450px"></div>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 热门分类排名 -->
+                    <div class="col-xl-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>热门分类排名</h5>
+                            </div>
+                            <div class="card-block">
+                                <figure class="highcharts-figure">
+                                    <div id="top-categories" style="height:450px"></div>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+<script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
+<script type="text/javascript" src="https://code.highcharts.com/modules/exporting.js"></script>
+<script type="text/javascript" src="https://code.highcharts.com/modules/export-data.js"></script>
+<script type="text/javascript" src="https://code.highcharts.com/modules/accessibility.js"></script>
+<script type="text/javascript">
+
+// 热门图书 TOP 10
+new Highcharts.Chart({
+    chart: {
+        type: 'bar',
+        renderTo: 'top-books',
+    },
+    title: { text: '借阅次数最多的图书' },
+    xAxis: {
+        categories: {{ top_book_titles|safe }},
+        title: { text: null }
+    },
+    yAxis: {
+        min: 0,
+        title: { text: '借阅次数', align: 'high' },
+        allowDecimals: false
+    },
+    plotOptions: {
+        bar: {
+            dataLabels: { enabled: true }
+        }
+    },
+    legend: { enabled: false },
+    series: [{
+        name: '借阅次数',
+        data: {{ top_book_counts|safe }},
+        color: '#4680FF'
+    }]
+});
+
+// 活跃读者 TOP 10
+new Highcharts.Chart({
+    chart: {
+        type: 'bar',
+        renderTo: 'top-readers',
+    },
+    title: { text: '借阅次数最多的读者' },
+    xAxis: {
+        categories: {{ top_reader_names|safe }},
+        title: { text: null }
+    },
+    yAxis: {
+        min: 0,
+        title: { text: '借阅次数', align: 'high' },
+        allowDecimals: false
+    },
+    plotOptions: {
+        bar: {
+            dataLabels: { enabled: true }
+        }
+    },
+    legend: { enabled: false },
+    series: [{
+        name: '借阅次数',
+        data: {{ top_reader_counts|safe }},
+        color: '#47CC8A'
+    }]
+});
+
+// 热门分类排名
+new Highcharts.Chart({
+    chart: {
+        type: 'pie',
+        renderTo: 'top-categories',
+    },
+    title: { text: '各分类借阅占比' },
+    tooltip: {
+        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b> ({point.y}次)'
+    },
+    accessibility: {
+        point: { valueSuffix: '%' }
+    },
+    plotOptions: {
+        pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+                enabled: true,
+                format: '<b>{point.name}</b>: {point.y}次 ({point.percentage:.1f}%)'
+            }
+        }
+    },
+    series: [{
+        name: '借阅',
+        colorByPoint: true,
+        data: (function() {
+            var names = {{ top_category_names|safe }};
+            var counts = {{ top_category_counts|safe }};
+            var data = [];
+            for (var i = 0; i < names.length; i++) {
+                data.push({ name: names[i], y: counts[i] });
+            }
+            return data;
+        })()
+    }]
+});
+
+</script>
+{% endblock javascripts %}

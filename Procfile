@@ -1,1 +1,1 @@
-web: uv run gunicorn --config gunicorn-cfg.py core.wsgi
+web: uv run python serve.py

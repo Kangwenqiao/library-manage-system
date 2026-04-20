@@ -1,6 +1,3 @@
-
-import numpy as np
-import pandas as pd
 import glob
 import shutil
 import os
@@ -19,6 +16,8 @@ def get_mem_usage(df):
     print(f"{df.memory_usage(deep=True).sum()/1024 **2:3.2f}Mb")
 
 def get_general_info(df):
+    import pandas as pd
+
     name = [x for x in globals() if globals()[x] is df][0]
     print(f"Dataframe << {name}>>has {df.shape[0]} rows, {df.shape[1]} columns")
     print("=======================================")
@@ -55,6 +54,8 @@ def save_as_pickle(df,name,path=None):
 
 
 def read_pickle_as_df(path=None):
+    import pandas as pd
+
     result={}
     current_path = os.getcwd()
     target_path = os.getcwd()
@@ -63,7 +64,7 @@ def read_pickle_as_df(path=None):
 
     os.chdir(target_path)
     lst = glob.glob(f"*.pkl")
-        
+
     for p in lst:
         name = p.split(".")[0]
         result[name]=pd.read_pickle(p)
@@ -73,6 +74,8 @@ def read_pickle_as_df(path=None):
 
 
 def read_large_csv(name,chunkSize=1000000,encoding='utf-8'):
+    import pandas as pd
+
     reader = pd.read_csv(name,iterator=True,encoding=encoding)
     chunks=[]
     loop=True

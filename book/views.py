@@ -1,6 +1,6 @@
 import os
-import pandas as pd
 import json
+import re
 
 from django.db.models.functions import ExtractMonth,ExtractWeek,TruncMonth,TruncWeek
 from django.shortcuts import render,get_object_or_404,redirect
@@ -26,8 +26,8 @@ from django.utils.decorators import method_decorator
 
 from django.contrib.auth.mixins import LoginRequiredMixin 
 from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
-from django.contrib.messages.views import messages
 from django.views.decorators.csrf import csrf_exempt
 from .forms import BookCreateEditForm,PubCreateEditForm,MemberCreateEditForm,ProfileForm,BorrowRecordCreateForm
 
@@ -902,6 +902,13 @@ class DataCenterView(LoginRequiredMixin,TemplateView):
     login_url = 'login'
 
     def get(self,request,*args, **kwargs):
+        try:
+            import pandas as pd
+        except ImportError:
+            return HttpResponse(
+                "[依赖缺失] 数据导出功能需要 pandas，请运行: pip install pandas",
+                status=500,
+            )
         # check_user_group(request.user,"download_data")
         data = {m.objects.model._meta.db_table:
         {"source":pd.DataFrame(list(m.objects.all().values())) ,
@@ -914,8 +921,15 @@ class DataCenterView(LoginRequiredMixin,TemplateView):
 @login_required(login_url='login')
 @allowed_groups(group_name=['download_data'])
 def download_data(request,model_name):
+    try:
+        import pandas as pd
+    except ImportError:
+        return HttpResponse(
+            "[依赖缺失] 数据导出功能需要 pandas，请运行: pip install pandas",
+            status=500,
+        )
     check_user_group(request.user,"download_data")
-            
+
     download = {m.objects.model._meta.db_table:
         {"source":pd.DataFrame(list(m.objects.all().values())) ,
           "path":f"{str(settings.BASE_DIR)}/datacenter/{m.__name__}_{TODAY}.csv",
@@ -929,7 +943,146 @@ def download_data(request,model_name):
     return response
 
 
-    
+
+
+# Rankings
+class RankingView(LoginRequiredMixin, TemplateView):
+    template_name = "book/rankings.html"
+    login_url = 'login'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        top_books = Book.objects.order_by('-total_borrow_times')[:10].values_list('title', 'total_borrow_times')
+        top_book_titles = [b[0] for b in top_books]
+        top_book_counts = [b[1] for b in top_books]
+
+        top_readers = (BorrowRecord.objects
+                       .values('borrower')
+                       .annotate(count=Count('id'))
+                       .order_by('-count')[:10])
+        top_reader_names = [r['borrower'] for r in top_readers]
+        top_reader_counts = [r['count'] for r in top_readers]
+
+        top_categories = (BorrowRecord.objects
+                          .filter(book_link__category__isnull=False)
+                          .values('book_link__category__name')
+                          .annotate(count=Count('id'))
+                          .order_by('-count')[:10])
+        top_category_names = [c['book_link__category__name'] for c in top_categories]
+        top_category_counts = [c['count'] for c in top_categories]
+
+        # json.dumps ensures safe embedding in JavaScript (no XSS via |safe)
+        context['top_book_titles'] = json.dumps(top_book_titles, ensure_ascii=False)
+        context['top_book_counts'] = json.dumps(top_book_counts)
+        context['top_reader_names'] = json.dumps(top_reader_names, ensure_ascii=False)
+        context['top_reader_counts'] = json.dumps(top_reader_counts)
+        context['top_category_names'] = json.dumps(top_category_names, ensure_ascii=False)
+        context['top_category_counts'] = json.dumps(top_category_counts)
+        return context
+
+
+# AI Smart Search
+try:
+    from zhipuai import ZhipuAI
+except ImportError:
+    ZhipuAI = None
+
+
+def _strip_code_fences(text):
+    """Strip markdown code fences (```json ... ```) from LLM output."""
+    return re.sub(r'^```\w*\s*|\s*```$', '', text.strip()).strip()
+
+
+@login_required(login_url='login')
+def ai_search(request):
+    context = {'results': [], 'query': '', 'error': ''}
+
+    if request.method == 'POST':
+        query = request.POST.get('ai_query', '').strip()
+        context['query'] = query
+
+        if not query:
+            return render(request, 'book/ai_search.html', context)
+
+        if ZhipuAI is None:
+            context['error'] = '未安装 zhipuai 依赖，请运行: uv sync'
+            return render(request, 'book/ai_search.html', context)
+
+        api_key = settings.ZHIPUAI_API_KEY
+        if not api_key:
+            context['error'] = '未配置智谱AI API Key，请在 .env 文件中设置 ZHIPUAI_API_KEY。'
+            return render(request, 'book/ai_search.html', context)
+
+        # Limit catalog to 500 books to stay within LLM context window
+        book_rows = (Book.objects
+                     .select_related('category')
+                     .order_by('-total_borrow_times')
+                     .values_list('title', 'author', 'category__name', 'description')[:500])
+        if not book_rows:
+            context['error'] = '图书库中暂无图书数据。'
+            return render(request, 'book/ai_search.html', context)
+
+        catalog_lines = []
+        for title, author, cat_name, desc in book_rows:
+            catalog_lines.append(
+                f"《{title}》 作者:{author} 分类:{cat_name or '未分类'} 简介:{(desc or '')[:100]}"
+            )
+        catalog = '\n'.join(catalog_lines)
+
+        try:
+            client = ZhipuAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model="glm-4-flash",
+                messages=[
+                    {"role": "system", "content": (
+                        "你是一个图书馆智能助手。用户会描述他们想找的书或感兴趣的内容。\n"
+                        "请根据以下图书目录，推荐最匹配的图书（最多5本）。\n"
+                        "对每本推荐的书，返回JSON数组格式：[{\"title\": \"书名\", \"reason\": \"推荐理由\"}]\n"
+                        "只返回JSON数组，不要包含其他内容。如果没有匹配的书，返回空数组 []。\n\n"
+                        f"图书目录：\n{catalog}"
+                    )},
+                    {"role": "user", "content": query},
+                ],
+            )
+
+            ai_text = _strip_code_fences(response.choices[0].message.content)
+            recommendations = json.loads(ai_text)
+
+            # Batch-match all recommended titles in a single query
+            title_q = Q()
+            for rec in recommendations:
+                t = rec.get('title', '')
+                if t:
+                    title_q |= Q(title__icontains=t)
+
+            matched_books = {}
+            if title_q:
+                for book in Book.objects.select_related('category').filter(title_q):
+                    matched_books.setdefault(book.title.lower(), book)
+
+            results = []
+            for rec in recommendations:
+                title = rec.get('title', '')
+                reason = rec.get('reason', '')
+                book = matched_books.get(title.lower()) or matched_books.get(title)
+                if not book:
+                    for key, val in matched_books.items():
+                        if title.lower() in key or key in title.lower():
+                            book = val
+                            break
+                results.append({'title': title, 'reason': reason, 'book': book})
+            context['results'] = results
+
+        except json.JSONDecodeError:
+            context['error'] = 'AI 返回的数据格式异常，请重试。'
+        except Exception as e:
+            logger.error(f"AI search error: {e}")
+            context['error'] = 'AI 服务暂时不可用，请稍后重试。'
+
+    return render(request, 'book/ai_search.html', context)
+
+
 # Handle Errors
 
 def page_not_found(request, exception):

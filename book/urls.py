@@ -12,6 +12,7 @@ from django.conf.urls.static import static
 from .views import BorrowRecordListView,BorrowRecordCreateView,BorrowRecordDeleteView,BorrowRecordDetailView,auto_member,auto_book,BorrowRecordClose
 from .views import DataCenterView,download_data
 from .views import ChartView,global_serach,EmployeeView,EmployeeDetailView,EmployeeUpdate,NoticeListView,NoticeUpdateView
+from .views import RankingView,ai_search
 
 urlpatterns = [
 
@@ -69,6 +70,12 @@ urlpatterns = [
 
     # Chart
     path('charts/',ChartView.as_view(),name="chart"),
+
+    # Rankings
+    path('rankings/',RankingView.as_view(),name="rankings"),
+
+    # AI Search
+    path('ai-search/',ai_search,name="ai_search"),
 
     # Global Search
     path('global-search/',global_serach,name="global_search"),

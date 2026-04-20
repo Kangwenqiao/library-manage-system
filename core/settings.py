@@ -4,6 +4,7 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 import os
+from pathlib import Path
 from decouple import config
 import dj_database_url
 
@@ -11,18 +12,28 @@ import dj_database_url
 # BASE_DIR = Path(__file__).parent
 # CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR_PATH = Path(BASE_DIR).resolve()
 
 def get_env_list(name, default=""):
     raw = config(name, default=default)
     return [item.strip() for item in raw.split(",") if item.strip()]
+
+def parse_debug(value):
+    normalized = str(value).strip().lower()
+    if normalized in {"1", "true", "yes", "on", "debug", "dev", "development"}:
+        return True
+    if normalized in {"0", "false", "no", "off", "release", "prod", "production"}:
+        return False
+    return bool(normalized)
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
-ROLE_LOGIN_ENABLED = config('ROLE_LOGIN_ENABLED', default=DEBUG, cast=bool)
+DEBUG = parse_debug(config('DEBUG', default='true'))
+ROLE_LOGIN_ENABLED = True
+ZHIPUAI_API_KEY = config('ZHIPUAI_API_KEY', default='')
 
 ALLOWED_HOSTS = get_env_list('ALLOWED_HOSTS', '127.0.0.1,localhost')
 CSRF_TRUSTED_ORIGINS = get_env_list('CSRF_TRUSTED_ORIGINS', '')
@@ -40,8 +51,6 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_tailwind',
     'phonenumber_field',
-    'bootstrap4',
-    'bootstrap_datepicker_plus',
     'rest_framework',
     'ckeditor',
     'comment',
@@ -49,7 +58,7 @@ INSTALLED_APPS = [
     # 'flatpickr',
     ]
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
 CRISPY_TEMPLATE_PACK = "tailwind"
 
 MIDDLEWARE = [
@@ -127,13 +136,11 @@ TEMPLATES = [
     },
 ]
 
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
-
 WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
+        default=f"sqlite:///{(BASE_DIR_PATH / 'db.sqlite3').as_posix()}",
         conn_max_age=600,
     )
 }
@@ -170,9 +177,9 @@ TIME_ZONE = "Asia/Shanghai"
 
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 
 LOGGING_DIR = os.path.join(BASE_DIR, 'logging')
