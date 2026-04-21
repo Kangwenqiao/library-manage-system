@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 {% load crispy_forms_tags %}
-{% block title %} Storage {% endblock %} 
+{% block title %} 图书管理 {% endblock %}
 
 <!-- Specific CSS goes HERE -->
 {% block stylesheets %}{% endblock stylesheets %}
@@ -16,36 +16,57 @@
                         <div class="page-header-title">
                             <h5 class="m-b-10">图书管理</h5>
                         </div>
-
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/" title="首页"><i class="feather icon-home"></i></a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'book_list' %}">图书列表</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'book_detail' object.pk %}">{{ object.title|truncatechars:20 }}</a></li>
+                            <li class="breadcrumb-item active">编辑</li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
         <br>
-        <!-- [ breadcrumb ] end -->
         <div class="main-body">
             <div class="page-wrapper">
                 <div class="row">
-                    <div class="col-xl-12">
+                    <!-- 左侧：当前书籍信息 -->
+                    <div class="col-xl-4 col-md-5">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-book"></i> 当前信息</h5>
+                            </div>
+                            <div class="card-block">
+                                <p><strong>书名：</strong>{{ object.title }}</p>
+                                <p><strong>作者：</strong>{{ object.author }}</p>
+                                <p><strong>类别：</strong>{{ object.category|default:"未分类" }}</p>
+                                <p><strong>出版商：</strong>{{ object.publisher|default:"未知" }}</p>
+                                <p><strong>数量：</strong>{{ object.quantity }}</p>
+                                <p><strong>状态：</strong>{{ object.get_status_display }}</p>
+                                <hr>
+                                <p class="text-muted mb-0"><small>最后更新：{{ object.updated_by }} @ {{ object.updated_at|date:"Y/m/d H:i" }}</small></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 右侧：编辑表单 -->
+                    <div class="col-xl-8 col-md-7">
                         <div class="card">
                             <div class="card-header">
                                 <h5>修改书籍内容</h5>
                             </div>
-                            <div class="card-block table-border-style">
-
-
+                            <div class="card-block">
                                 <form method="post" enctype="multipart/form-data">
                                     {% csrf_token %}
                                     {{ form|crispy }}
-                    
-                                    <button type="submit" class="btn btn-primary">更新</button>
+                                    <div class="mt-3">
+                                        <button type="submit" class="btn btn-primary">更新</button>
+                                        <a href="{% url 'book_detail' object.pk %}" class="btn btn-secondary">取消</a>
+                                        <a href="{% url 'book_list' %}" class="btn btn-dark">返回列表</a>
+                                    </div>
                                 </form>
-
-
                             </div>
                         </div>
                     </div>
-                    
                 </div>
                 <!-- [ Main Content ] end -->
             </div>

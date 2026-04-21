@@ -29,7 +29,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
-from .forms import BookCreateEditForm,PubCreateEditForm,MemberCreateEditForm,ProfileForm,BorrowRecordCreateForm
+from .forms import BookCreateEditForm,PubCreateEditForm,MemberCreateEditForm,ProfileForm,BorrowRecordCreateForm,EmployeeCreateForm,EmployeeEditForm
 
 # from .utils import get_n_days_ago,create_clean_dir,change_col_format
 from util.useful import get_n_days_ago,create_clean_dir,change_col_format
@@ -613,6 +613,18 @@ class MemberUpdateView(AdminRequiredMixin,UpdateView):
     form_class=MemberCreateEditForm
     template_name = 'book/member_update.html'
 
+    def _can_change_password(self):
+        member = self.get_object()
+        user = self.request.user
+        return user.is_superuser or (member.user and member.user == user)
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        if not self._can_change_password():
+            del form.fields['new_password']
+            del form.fields['new_password_confirm']
+        return form
+
     def post(self, request, *args, **kwargs):
         current_member = self.get_object()
         current_member.updated_by=self.request.user.username
@@ -624,8 +636,14 @@ class MemberUpdateView(AdminRequiredMixin,UpdateView):
         return super(MemberUpdateView, self).post(request, *args, **kwargs)
 
     def form_valid(self, form):
-        member_name=form.cleaned_data['name']      
-        messages.warning(self.request, f"Update << {member_name} >> success")
+        new_pw = form.cleaned_data.get('new_password')
+        if new_pw and self._can_change_password():
+            member_user = form.cleaned_data.get('user') or self.get_object().user
+            if member_user:
+                member_user.set_password(new_pw)
+                member_user.save(update_fields=['password'])
+        member_name=form.cleaned_data['name']
+        messages.warning(self.request, f"更新 << {member_name} >> 成功")
         return super().form_valid(form)
 
 class MemberDeleteView(AdminRequiredMixin,View):
@@ -1294,18 +1312,60 @@ class EmployeeDetailView(SuperUserRequiredMixin,DetailView):
 
 @user_passes_test(lambda u: u.is_superuser)
 @login_required(login_url='login')
-def EmployeeUpdate(request,pk):
-    # check_superuser(request.user)
-    current_user = User.objects.get(pk=pk)
+def EmployeeUpdate(request, pk):
+    current_user = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
-        chosen_groups = [ g for g in user_groups if "on" in request.POST.getlist(g)]
-        current_user.groups.clear()
-        for each in chosen_groups:
-            group = Group.objects.get(name=each)
-            current_user.groups.add(group)
-        messages.success(request, f"Group for  << {current_user.username} >> has been updated")
-        return redirect('employees_detail', pk=pk)
+        form = EmployeeEditForm(request.POST, instance=current_user)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_staff = form.cleaned_data['is_staff']
+            user.is_active = form.cleaned_data['is_active']
+            user.is_superuser = form.cleaned_data['is_superuser']
+            new_pw = form.cleaned_data.get('new_password')
+            if new_pw:
+                user.set_password(new_pw)
+            user.save()
+            user.groups.set(form.cleaned_data['groups'])
+            UserActivity.objects.create(
+                created_by=request.user.username,
+                operation_type="warning",
+                target_model='User',
+                detail=f"Update Employee << {user.username} >>",
+            )
+            messages.success(request, f"员工 << {user.username} >> 信息已更新")
+            return redirect('employees_detail', pk=pk)
+    else:
+        form = EmployeeEditForm(instance=current_user, initial={
+            'groups': current_user.groups.all(),
+            'is_staff': current_user.is_staff,
+            'is_active': current_user.is_active,
+            'is_superuser': current_user.is_superuser,
+        })
+    return render(request, 'book/employee_detail.html', {'form': form, 'employee': current_user})
 
+
+@user_passes_test(lambda u: u.is_superuser)
+@login_required(login_url='login')
+def EmployeeCreate(request):
+    if request.method == 'POST':
+        form = EmployeeCreateForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.is_staff = form.cleaned_data['is_staff']
+            user.is_superuser = form.cleaned_data['is_superuser']
+            user.save()
+            user.groups.set(form.cleaned_data['groups'])
+            UserActivity.objects.create(
+                created_by=request.user.username,
+                target_model='User',
+                detail=f"Create Employee << {user.username} >>",
+            )
+            messages.success(request, f"员工 << {user.username} >> 已创建")
+            return redirect('employees_list')
+    else:
+        form = EmployeeCreateForm()
+    return render(request, 'book/employee_create.html', {'form': form})
 
 
 # Notice

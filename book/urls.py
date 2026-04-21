@@ -11,7 +11,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from .views import BorrowRecordListView,BorrowRecordCreateView,BorrowRecordDeleteView,BorrowRecordDetailView,auto_member,auto_book,BorrowRecordClose,BorrowRecordReturnRequest,BorrowRecordRejectReturn,BorrowRecordApproveBorrow,BorrowRecordRejectBorrow
 from .views import DataCenterView,download_data
-from .views import ChartView,global_serach,EmployeeView,EmployeeDetailView,EmployeeUpdate,NoticeListView,NoticeUpdateView
+from .views import ChartView,global_serach,EmployeeView,EmployeeDetailView,EmployeeUpdate,EmployeeCreate,NoticeListView,NoticeUpdateView
 from .views import RankingView,ai_search
 
 urlpatterns = [
@@ -86,7 +86,8 @@ urlpatterns = [
 
     # Employee
     path('employees/',EmployeeView.as_view(),name="employees_list"),
-    path('employees-detail/<int:pk>',EmployeeDetailView.as_view(),name="employees_detail"),
+    path('employees-create/',EmployeeCreate,name="employee_create"),
+    path('employees-detail/<int:pk>',EmployeeUpdate,name="employees_detail"),
     path('employees-update/<int:pk>',EmployeeUpdate,name='employee_update'),
 
     # Notice

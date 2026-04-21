@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 {% load crispy_forms_tags %}
-{% block title %} Storage {% endblock %} 
+{% block title %} 会员管理 {% endblock %}
 
 <!-- Specific CSS goes HERE -->
 {% block stylesheets %}{% endblock stylesheets %}
@@ -16,39 +16,61 @@
                         <div class="page-header-title">
                             <h5 class="m-b-10">会员管理</h5>
                         </div>
-
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/" title="首页"><i class="feather icon-home"></i></a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'member_list' %}">会员列表</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'member_detail' object.pk %}">{{ object.name }}</a></li>
+                            <li class="breadcrumb-item active">编辑</li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
         <br>
-        <!-- [ breadcrumb ] end -->
         <div class="main-body">
             <div class="page-wrapper">
                 <div class="row">
-                    <div class="col-xl-12">
+                    <!-- 左侧：当前会员信息 -->
+                    <div class="col-xl-4 col-md-5">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-user-tie"></i> 当前信息</h5>
+                            </div>
+                            <div class="card-block">
+                                <p><strong>姓名：</strong>{{ object.name }}</p>
+                                <p><strong>性别：</strong>{{ object.get_gender_display }}</p>
+                                <p><strong>年龄：</strong>{{ object.age }}</p>
+                                <p><strong>城市：</strong>{{ object.city }}</p>
+                                <p><strong>电话：</strong>{{ object.phone_number }}</p>
+                                <p><strong>邮箱：</strong>{{ object.email|default:"未填写" }}</p>
+                                <hr>
+                                <p><strong>卡号：</strong>{{ object.card_number }}</p>
+                                <p><strong>到期时间：</strong>{{ object.expired_at|date:"Y/m/d" }}</p>
+                                <hr>
+                                <p class="text-muted mb-0"><small>最后更新：{{ object.updated_by }} @ {{ object.updated_at|date:"Y/m/d H:i" }}</small></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 右侧：编辑表单 -->
+                    <div class="col-xl-8 col-md-7">
                         <div class="card">
                             <div class="card-header">
                                 <h5>修改会员信息</h5>
                             </div>
-                            <div class="card-block table-border-style">
-
-
+                            <div class="card-block">
                                 <form method="post" enctype="multipart/form-data">
                                     {% csrf_token %}
                                     {{ form|crispy }}
-                    
-                                    <button type="submit" class="btn btn-primary">更新</button>
-                                    <a href="{% url 'member_list' %}" class='btn btn-dark'>取消</a>
+                                    <div class="mt-3">
+                                        <button type="submit" class="btn btn-primary">更新</button>
+                                        <a href="{% url 'member_detail' object.pk %}" class="btn btn-secondary">取消</a>
+                                        <a href="{% url 'member_list' %}" class="btn btn-dark">返回列表</a>
+                                    </div>
                                 </form>
-
-                                
                             </div>
                         </div>
                     </div>
-                    
                 </div>
-                <!-- [ Main Content ] end -->
             </div>
         </div>
     </div>

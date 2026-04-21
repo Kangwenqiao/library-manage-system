@@ -7,7 +7,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
   "Django>=4.2.16,<5.0",
   "Pillow>=10.4.0,<11",
-  "crispy-tailwind>=1.0.3,<2",
+  "crispy-bootstrap4>=2025.6,<2027",
   "dj-database-url>=2.2.0,<3",
   "django-appconf>=1.1.0,<2",
   "django-ckeditor>=6.7.1,<7",

@@ -1,7 +1,7 @@
 {% extends "layouts/base.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
-{% block title %} User Admin{% endblock %}
+{% block title %} 个人资料{% endblock %}
 
 {% block stylesheets %}
 {% endblock stylesheets %}
@@ -60,7 +60,7 @@
                                     {% else %}
                                     <img src="{% static 'assets/images/user/avatar-4.jpg' %}" alt="">
                                     <br>
-                                    <p class='text-center'>No avatar</p>
+                                    <p class='text-center'>暂无头像</p>
                                     {% endif %}
                                 </div>
                             </div>

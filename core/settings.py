@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'book',
     'crispy_forms',
-    'crispy_tailwind',
+    'crispy_bootstrap4',
     'phonenumber_field',
     'rest_framework',
     'ckeditor',
@@ -58,8 +58,8 @@ INSTALLED_APPS = [
     # 'flatpickr',
     ]
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = ["tailwind"]
-CRISPY_TEMPLATE_PACK = "tailwind"
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["bootstrap4"]
+CRISPY_TEMPLATE_PACK = "bootstrap4"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

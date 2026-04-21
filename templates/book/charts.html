@@ -112,15 +112,15 @@
       }
     },
     title: {
-          text: 'Top 5 in Stock'
+          text: '库存 Top 5'
       },
       xAxis: {
           categories: {{top_5_book_titles|safe}}
       },
-      yAxis: {title: {text: 'Stock'}},
+      yAxis: {title: {text: '库存'}},
       series: [{
           type: 'column',
-          name: 'Quantity',
+          name: '数量',
           data: {{top_5_book__quantities}},
       }]
   });
@@ -131,16 +131,16 @@
       type: 'column',
     },
     title: {
-          text: 'Most borrowed books'
+          text: '最受欢迎书籍'
       },
       xAxis: {
           categories: {{top_borrow_titles|safe}},
    
       },
-      yAxis: {title: {text: 'Counts'}},
+      yAxis: {title: {text: '借阅次数'}},
       series: [{
           type: 'column',
-          name: 'Count',
+          name: '次数',
           data: {{top_borrow_times}},
           color:"#47CC8A",
       }]
@@ -158,7 +158,7 @@
     },
 
     title: {
-          text: 'Open / Closed '
+          text: '借阅中 / 已归还'
       },
    accessibility: {
         point: {
@@ -175,15 +175,15 @@
         }
     },
     series: [{
-        name: 'Record',
+        name: '记录',
         colorByPoint: true,
         data: [{
-            name: 'Open',
+            name: '借阅中',
             y: {{r_open |safe}},
             color:"#F28B5B",
         }, 
             
-            { name: 'Closed',
+            { name: '已归还',
               y: {{r_close |safe}},
               color:"#A169E7",
             }
@@ -195,16 +195,16 @@
 new Highcharts.Chart('monthly-member', {
 
 title: {
-    text: 'New joined member / month'
+    text: '每月新增会员'
 },
 
 subtitle: {
-    text: 'Count total by month'
+    text: '按月统计'
 },
 
 yAxis: {
     title: {
-        text: 'Total count'
+        text: '总数'
     }
 },
 
@@ -227,7 +227,7 @@ plotOptions: {
 },
 
 series: [{
-    name: 'Member',
+    name: '会员',
     data: {{count_monthly_member|safe}}
 }],
 

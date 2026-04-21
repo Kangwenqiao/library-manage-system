@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 {% load book_extras %}
-{% block title %} User Activity {% endblock %}
+{% block title %} 用户日志 {% endblock %}
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
@@ -12,7 +12,7 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h5 class="m-b-10">User Activity</h5>
+                            <h5 class="m-b-10">用户日志</h5>
                         </div>
                     </div>
                 </div>
@@ -27,7 +27,7 @@
                     <div class="col-xl-12">
                         <div class="card">
                             <div class="card-header">
-                                <h5>Total {{count_total}} activities</h5>
+                                <h5>共 {{count_total}} 条记录</h5>
                             </div>
                             {% show_messages %}
                             <div class="card-block ">
@@ -38,8 +38,7 @@
                                         <div class="btn-group ">
                                             {% if created_by == '' %}
                                             <button class="btn btn-light dropdown-toggle" type="button"
-                                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select
-                                                User </button>
+                                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">选择用户</button>
                                             {% else %}
                                             <button class="btn btn-light dropdown-toggle" type="button"
                                                 data-toggle="dropdown" aria-haspopup="true"
@@ -60,13 +59,12 @@
                                     <div class="col-6">
                                         <form class="form-inline mb-2">
                                             <div class="form-group  mb-2">
-                                                <input type="text" class="form-control" name="search" , id='search' ,
-                                                    placeholder="Search target" , value="">
+                                                <input type="text" class="form-control" name="search", id='search',
+                                                    placeholder="搜索目标", value="">
                                             </div>
 
-                                            <!-- <input type="hidden" name="created_by" id="created_by" value={{created_by}}> -->
                                             <button type="submit"
-                                                class="btn btn-secondary ml-2 mb-2 btn-sm">Search</button>
+                                                class="btn btn-secondary ml-2 mb-2 btn-sm">搜索</button>
                                         </form>
                                     </div>
                                 </div>
@@ -75,13 +73,13 @@
                                     <table class="table">
                                         <thead>
                                             <tr>
-                                                <th>id</th>
-                                                <th>User</th>
-                                                <th>Activity</th>
-                                                <th>Target</th>
-                                                <th>At</th>
-                                                <th>Detail</th>
-                                                <th>#</th>
+                                                <th>序号</th>
+                                                <th>用户</th>
+                                                <th>操作类型</th>
+                                                <th>目标模型</th>
+                                                <th>时间</th>
+                                                <th>详情</th>
+                                                <th>操作</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -96,7 +94,7 @@
                                                 <td>{{ activity.created_at|date:"Y-m-d H:i" }} </td>
                                                 <td>{{ activity.detail}} </td>
                                                 <td><a href="{% url 'user_activity_delete' activity.pk %}"
-                                                        class="badge badge-warning">Delete</a></td>
+                                                        class="badge badge-warning">删除</a></td>
                                             </tr>
 
                                             {% endfor %}
@@ -112,11 +110,11 @@
                                         <ul class="pagination">
                                             {% if activities.has_previous %}
                                             <li class="page-item"><a class="page-link"
-                                                    href="?{% param_replace page=1 %}">First</a>
+                                                    href="?{% param_replace page=1 %}">首页</a>
                                             </li>
                                             {% else %}
                                             <li class="page-item disabled"><a href=""><span
-                                                        class="page-link">First</span></a></li>
+                                                        class="page-link">首页</span></a></li>
 
                                             {% endif %}
 
@@ -141,24 +139,20 @@
                                                 </li>
                                                 {% endif %}
 
-
-
-
                                                 {% if activities.has_next %}
-
                                                 <li class="page-item"><a class="page-link"
-                                                        href="?{% param_replace page=activities.paginator.num_pages %}">Last&nbsp;<i
+                                                        href="?{% param_replace page=activities.paginator.num_pages %}">末页&nbsp;<i
                                                             class="fa fa-chevron-right" aria-hidden="true"></i></a></li>
                                                 {% else %}
                                                 <li class="page-item disabled"><a href=""><span
-                                                            class="page-link">End</span></a></li>
+                                                            class="page-link">末页</span></a></li>
                                                 {% endif %}
 
                                         </ul>
                                     </div>
 
                                     <div class='col-2 mr-0'>
-                                        <h6>Page {{ activities.number }} of {{ activities.paginator.num_pages }} </h6>
+                                        <h6>第 {{ activities.number }} / {{ activities.paginator.num_pages }} 页</h6>
                                     </div>
                                 </div>
                             </div>

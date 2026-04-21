@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 {% load book_extras %}
-{% block title %} Search Result {% endblock %}
+{% block title %} 搜索结果 {% endblock %}
 
 {% block stylesheets %}{% endblock stylesheets %}
 
@@ -171,7 +171,7 @@
                                                 <td>{{member.card_number}}</td>
                                                 <td>{{member.city}}</td>
                                                 <td>{{member.email}}</td>
-                                                <td>{{ member.created_at|date:"Y-m-d" }} by {{member.created_by}} </td>
+                                                <td>{{ member.created_at|date:"Y-m-d" }} 由 {{member.created_by}} </td>
                                                 <td>{{ member.expired_at|date:"Y-m-d" }} </td>
                                             </tr>
                                             {% endfor %}

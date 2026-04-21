@@ -1,13 +1,9 @@
 {% extends "layouts/base.html" %}
 {% load crispy_forms_tags %}
 {% load book_extras %}
+{% block title %} 员工管理 {% endblock %}
 
-{% block title %} Management{% endblock %} 
-
-{% block stylesheets %}
-<!-- <link rel="stylesheet" href="/static/assets/css/card.css"> -->
-
-{% endblock stylesheets %}
+{% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
 
@@ -18,73 +14,81 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h5 class="m-b-10">Employee Management</h5>
+                            <h5 class="m-b-10">员工管理</h5>
                         </div>
+                        <ul class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/" title="首页"><i class="feather icon-home"></i></a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'employees_list' %}">员工列表</a></li>
+                            <li class="breadcrumb-item active">{{ employee.username }}</li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
         <br>
-        <!-- [ breadcrumb ] end -->
         <div class="main-body">
             <div class="page-wrapper">
+
+                {% show_messages %}
+
                 <div class="row">
-                    <div class="col-xl-12">
+                    <!-- 左侧：当前信息摘要 -->
+                    <div class="col-xl-4 col-md-5">
                         <div class="card">
                             <div class="card-header">
-                                <h5><i class="fas fa-user-tie"></i> {{employee.username}}  </h5>
+                                <h5><i class="fas fa-user-tie"></i> 当前信息</h5>
                             </div>
-                            {% show_messages %}
-
                             <div class="card-block">
-                                <div class='row'>                                
-                                    
-                                    <div class="col-md-6">
-                                        <p>User Name: {{employee.username}}</p>
-                                        <p>is_superuser: {{employee.is_superuser}}</p>
-                                        <p>Date joined : {{employee.date_joined}}</p>
-                                        <p>Last login : {{employee.last_login|date:"Y/m/d H:i"}}</p>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <p>is_staff: {{employee.is_staff}}</p>
-                                        <p>is_active: {{employee.is_active}}</p>
- 
-                                        
-                                        <form action="{% url 'employee_update' employee.pk %}" method="POST" class='form-inline'>
-                                            {% csrf_token %}
-                                        <div class="form-check form-check-inline">Change Group :</div>
-                                        {% for g in groups %}
-                                        {% if employee|has_group:g %}
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" id={{g}} name={{g}}  checked>
-                                            <label class="form-check-label" for={{g}}>{{g}}</label>
-                                        </div>
-                                        {% else %}
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="checkbox" id={{g}} name={{g}}  >
-                                            <label class="form-check-label" for={{g}}>{{g}}</label>
-                                        </div>
-                                        {% endif %}
-
-                                        {% endfor %}
-
-                                        <button class="badge badge-sm" type="submit">Update</button>
-
-                                        </form>
-
-                                    </div>
-                                </div>
-
-
-                                <a href="{% url 'employees_list' %}" class='btn btn-primary'>Back</a>
-
+                                <p><strong>用户名：</strong>{{ employee.username }}</p>
+                                <p><strong>邮箱：</strong>{{ employee.email|default:"未填写" }}</p>
+                                <p><strong>姓名：</strong>{{ employee.last_name }}{{ employee.first_name }}</p>
+                                <hr>
+                                <p><strong>超级管理员：</strong>
+                                    {% if employee.is_superuser %}
+                                    <i class="fas fa-check-circle" style="color:#267013"></i> 是
+                                    {% else %}
+                                    <i class="fas fa-times-circle" style="color:#f01616"></i> 否
+                                    {% endif %}
+                                </p>
+                                <p><strong>员工权限：</strong>
+                                    {% if employee.is_staff %}
+                                    <i class="fas fa-check-circle" style="color:#267013"></i> 是
+                                    {% else %}
+                                    <i class="fas fa-times-circle" style="color:#f01616"></i> 否
+                                    {% endif %}
+                                </p>
+                                <p><strong>账号状态：</strong>
+                                    {% if employee.is_active %}
+                                    <span class="badge badge-success">已激活</span>
+                                    {% else %}
+                                    <span class="badge badge-danger">已禁用</span>
+                                    {% endif %}
+                                </p>
+                                <p><strong>用户组：</strong>{{ employee.groups.all|join:", "|default:"无" }}</p>
+                                <hr>
+                                <p><strong>注册时间：</strong>{{ employee.date_joined|date:"Y/m/d H:i" }}</p>
+                                <p><strong>最后登录：</strong>{{ employee.last_login|date:"Y/m/d H:i"|default:"从未登录" }}</p>
                             </div>
-                            
-
                         </div>
                     </div>
-                    
+                    <!-- 右侧：编辑表单 -->
+                    <div class="col-xl-8 col-md-7">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>编辑员工信息</h5>
+                            </div>
+                            <div class="card-block">
+                                <form method="post" action="{% url 'employee_update' employee.pk %}">
+                                    {% csrf_token %}
+                                    {{ form|crispy }}
+                                    <div class="mt-3">
+                                        <button type="submit" class="btn btn-primary">保存修改</button>
+                                        <a href="{% url 'employees_list' %}" class="btn btn-dark">返回列表</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -93,5 +97,4 @@
 
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
 {% block javascripts %}{% endblock javascripts %}

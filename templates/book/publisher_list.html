@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 {% load book_extras %}
-{% block title %} Management {% endblock %} 
+{% block title %} 出版商管理 {% endblock %} 
 
 {% block stylesheets %}{% endblock stylesheets %}
 
@@ -55,7 +55,7 @@
                                                        class="form-control" 
                                                        name="search",
                                                        id='search',
-                                                       placeholder="Search...",
+                                                       placeholder="搜索...",
                                                        value={{search}}
                                                        >
                                             </div>
@@ -86,7 +86,7 @@
                                                 <td>{{pub.city}}</td>
                                                 <td>{{pub.contact}}</td>
                                                 <td>{{ pub.created_at|date:"Y/m/d" }} </td>
-                                                <td>{{ pub.updated_by}} at {{ pub.updated_at|date:"Y-m-d H:i" }}  </td>
+                                                <td>{{ pub.updated_by}} 于 {{ pub.updated_at|date:"Y-m-d H:i" }}  </td>
                                                 <td><a href="{% url 'publisher_update' pub.id%}" class="badge badge-info"><i class="feather icon-edit"></i>&nbsp;更新</a>
                                                     <a href="{% url 'publisher_delete' pub.pk %}" class="badge badge-danger"><i class="feather icon-trash-2"></i>&nbsp;删除</a>&nbsp;
                                                 </td>

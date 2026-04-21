@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User, Group
 from .models import Book,Publisher,Member,Profile,BorrowRecord
 from django.contrib.admin.widgets import AutocompleteSelect
 from django.contrib import admin
@@ -33,6 +34,14 @@ class PubCreateEditForm(forms.ModelForm):
         # fields="__all__"
 
 class MemberCreateEditForm(forms.ModelForm):
+    new_password = forms.CharField(
+        label='新密码', required=False, widget=forms.PasswordInput,
+        help_text='留空则不修改密码（需关联用户）',
+    )
+    new_password_confirm = forms.CharField(
+        label='确认新密码', required=False, widget=forms.PasswordInput,
+    )
+
     class Meta:
         model = Member
         fields = ('user',
@@ -40,8 +49,18 @@ class MemberCreateEditForm(forms.ModelForm):
                   'gender',
                   'age',
                   'email',
-                  'city', 
+                  'city',
                   'phone_number',)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pw = cleaned_data.get('new_password')
+        pw2 = cleaned_data.get('new_password_confirm')
+        if pw and pw != pw2:
+            self.add_error('new_password_confirm', '两次输入的密码不一致')
+        if pw and not cleaned_data.get('user'):
+            self.add_error('new_password', '未关联用户，无法修改密码')
+        return cleaned_data
 
 class ProfileForm(forms.ModelForm):
     class Meta:
@@ -50,6 +69,66 @@ class ProfileForm(forms.ModelForm):
                   'bio', 
                   'phone_number',
                   'email')
+
+class EmployeeCreateForm(forms.ModelForm):
+    password = forms.CharField(label='密码', widget=forms.PasswordInput)
+    password_confirm = forms.CharField(label='确认密码', widget=forms.PasswordInput)
+    is_staff = forms.BooleanField(label='员工权限', required=False, initial=True,
+                                  help_text='允许登录管理后台')
+    is_superuser = forms.BooleanField(label='超级管理员', required=False,
+                                      help_text='拥有所有权限')
+    groups = forms.ModelMultipleChoiceField(
+        label='用户组', queryset=Group.objects.all(),
+        required=False, widget=forms.CheckboxSelectMultiple,
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pw = cleaned_data.get('password')
+        pw2 = cleaned_data.get('password_confirm')
+        if pw and pw2 and pw != pw2:
+            self.add_error('password_confirm', '两次输入的密码不一致')
+        return cleaned_data
+
+
+class EmployeeEditForm(forms.ModelForm):
+    new_password = forms.CharField(
+        label='新密码', required=False, widget=forms.PasswordInput,
+        help_text='留空则不修改密码',
+    )
+    new_password_confirm = forms.CharField(
+        label='确认新密码', required=False, widget=forms.PasswordInput,
+    )
+    is_staff = forms.BooleanField(label='员工权限', required=False, help_text='允许登录管理后台')
+    is_active = forms.BooleanField(label='账号激活', required=False, help_text='取消勾选将禁止该用户登录')
+    is_superuser = forms.BooleanField(label='超级管理员', required=False, help_text='拥有所有权限')
+    groups = forms.ModelMultipleChoiceField(
+        label='用户组', queryset=Group.objects.all(),
+        required=False, widget=forms.CheckboxSelectMultiple,
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name')
+        labels = {
+            'username': '用户名',
+            'email': '邮箱',
+            'first_name': '名',
+            'last_name': '姓',
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pw = cleaned_data.get('new_password')
+        pw2 = cleaned_data.get('new_password_confirm')
+        if pw and pw != pw2:
+            self.add_error('new_password_confirm', '两次输入的密码不一致')
+        return cleaned_data
+
 
 class BorrowRecordCreateForm(forms.ModelForm):
     borrower = forms.CharField(label='借阅者', required=False,
