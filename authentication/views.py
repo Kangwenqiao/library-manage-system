@@ -9,6 +9,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from .forms import LoginForm, SignUpForm
+from book.models import Member
 
 
 ROLE_LOGIN_CONFIG = [
@@ -162,15 +163,23 @@ def register_user(request):
     if request.method == "POST":
         form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save()
+            new_user = form.save()
             username = form.cleaned_data.get("username")
             raw_password = form.cleaned_data.get("password1")
             user = authenticate(username=username, password=raw_password)
 
+            if not hasattr(new_user, 'member') or new_user.member is None:
+                Member.objects.create(
+                    user=new_user,
+                    name=username,
+                    email=new_user.email or '',
+                    city='未填写',
+                    phone_number='未填写',
+                    created_by='注册自动创建',
+                )
+
             msg     = '用户已创建 - 请<a href="/login">登录</a>.'
             success = True
-            
-            #return redirect("/login/")
 
         else:
             msg = '表单无效'
