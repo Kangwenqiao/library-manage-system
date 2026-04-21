@@ -67,13 +67,11 @@
         {% endif %}
         <div class="dropdown-divider"></div>
 
-        {% if request.user.is_superuser %}
         <a class="dropdown-item" href="{% url 'notice_list' %}">通知
           {% if unread_count %}
           <span class="badge badge-danger">{{ unread_count }}</span>
-        {% endif %}
-       </a>
-       {% endif %}
+          {% endif %}
+        </a>
         <a class="dropdown-item" href="{% url 'logout' %}">登出</a>
       </div>
 

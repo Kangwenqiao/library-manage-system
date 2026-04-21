@@ -9,7 +9,7 @@ from .views import MemberCreateView,MemberUpdateView,MemberDeleteView,MemberList
 from .views import ProfileDetailView,ProfileCreateView,ProfileUpdateView
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import BorrowRecordListView,BorrowRecordCreateView,BorrowRecordDeleteView,BorrowRecordDetailView,auto_member,auto_book,BorrowRecordClose
+from .views import BorrowRecordListView,BorrowRecordCreateView,BorrowRecordDeleteView,BorrowRecordDetailView,auto_member,auto_book,BorrowRecordClose,BorrowRecordReturnRequest,BorrowRecordRejectReturn,BorrowRecordApproveBorrow,BorrowRecordRejectBorrow
 from .views import DataCenterView,download_data
 from .views import ChartView,global_serach,EmployeeView,EmployeeDetailView,EmployeeUpdate,NoticeListView,NoticeUpdateView
 from .views import RankingView,ai_search
@@ -63,6 +63,10 @@ urlpatterns = [
     path('record-detail/<int:pk>/',BorrowRecordDetailView.as_view(),name="record_detail"),
     path('record-delete/<int:pk>/',BorrowRecordDeleteView.as_view(),name="record_delete"),
     path('record-close/<int:pk>/',BorrowRecordClose.as_view(),name="record_close"),
+    path('record-return/<int:pk>/',BorrowRecordReturnRequest.as_view(),name="record_return"),
+    path('record-reject/<int:pk>/',BorrowRecordRejectReturn.as_view(),name="record_reject"),
+    path('record-approve/<int:pk>/',BorrowRecordApproveBorrow.as_view(),name="record_approve"),
+    path('record-reject-borrow/<int:pk>/',BorrowRecordRejectBorrow.as_view(),name="record_reject_borrow"),
 
     # Data center
     path('data-center/',DataCenterView.as_view(),name="data_center"),

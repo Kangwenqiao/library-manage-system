@@ -1,7 +1,6 @@
 import glob
 import shutil
 import os
-import sqlite3
 from copy import deepcopy
 from datetime import datetime,timedelta,date
 from django.core.exceptions import PermissionDenied

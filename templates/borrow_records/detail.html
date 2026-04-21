@@ -112,9 +112,25 @@
 
                                 <a href="{% url 'record_list' %}" class='btn btn-primary'>返回</a>
 
-                                {% if record.open_or_close == 0 %}
-
-                                <a href="{% url 'record_close' record.pk %}" class='btn btn-danger'>还书</a>
+                                {% if request.user.is_staff %}
+                                    {% if record.open_or_close == 3 %}
+                                    <a href="{% url 'record_approve' record.pk %}" class='btn btn-success'>批准借阅</a>
+                                    <a href="{% url 'record_reject_borrow' record.pk %}" class='btn btn-secondary'>拒绝借阅</a>
+                                    {% endif %}
+                                    {% if record.open_or_close == 0 or record.open_or_close == 2 %}
+                                    <a href="{% url 'record_close' record.pk %}" class='btn btn-danger'>确认还书</a>
+                                    {% endif %}
+                                    {% if record.open_or_close == 2 %}
+                                    <a href="{% url 'record_reject' record.pk %}" class='btn btn-secondary'>拒绝还书</a>
+                                    {% endif %}
+                                {% else %}
+                                    {% if record.open_or_close == 3 %}
+                                    <span class="badge badge-info" style="font-size:14px;padding:8px 16px;">借阅申请待审批</span>
+                                    {% elif record.open_or_close == 0 %}
+                                    <a href="{% url 'record_return' record.pk %}" class='btn btn-warning'>申请还书</a>
+                                    {% elif record.open_or_close == 2 %}
+                                    <span class="badge badge-warning" style="font-size:14px;padding:8px 16px;">已申请还书，等待管理员确认</span>
+                                    {% endif %}
                                 {% endif %}
                             </div>
                         </div>

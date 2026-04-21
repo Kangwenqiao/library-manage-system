@@ -133,8 +133,11 @@ ALLOWED_HOSTS=127.0.0.1,localhost,192.168.1.100
 ### 可选配置
 
 ```ini
-# 数据库地址，默认使用 SQLite（无需额外安装）
-DATABASE_URL=sqlite:///db.sqlite3
+# 数据库地址，默认连接本地 MySQL
+DATABASE_URL=mysql://root:123456@127.0.0.1:3306/library
+
+# 智谱 AI 接口密钥（AI 智能搜索功能需要）
+ZHIPUAI_API_KEY=your-api-key-here
 
 # 监听地址，0.0.0.0 表示允许局域网其他电脑访问
 HOST=0.0.0.0
@@ -173,13 +176,36 @@ uv sync
 
 ## 7. 第六步：初始化数据库
 
+### 7.0 启动 MySQL
+
+本项目使用 MySQL 数据库。如果使用 Docker 运行 MySQL：
+
+```powershell
+docker run -d --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 mysql:8.0
+```
+
+然后执行建库脚本：
+
+```powershell
+docker exec -i mysql mysql -uroot -p123456 < init_db.sql
+```
+
 ### 7.1 执行数据库迁移
 
 ```powershell
 uv run python manage.py migrate
 ```
 
-此命令会在项目目录下生成 `db.sqlite3` 数据库文件。
+### 7.1.1 导入演示数据（可选）
+
+```powershell
+docker exec -i mysql mysql -uroot -p123456 library < init_data.sql
+```
+
+演示账号（密码均为 `Demo@123456`）：
+- `demo_admin` — 管理员
+- `demo_librarian` — 图书管理员
+- `demo_reader` — 普通读者
 
 ### 7.2 收集静态资源
 
@@ -277,11 +303,10 @@ uv run python serve.py
 
 ### 10.4 备份数据库
 
-默认使用 SQLite，数据库文件是项目根目录下的 `db.sqlite3`。
+项目使用 MySQL 数据库，使用 `mysqldump` 备份：
 
 ```powershell
-# 停止服务后复制数据库文件
-Copy-Item db.sqlite3 "db.sqlite3.backup.$(Get-Date -Format 'yyyyMMdd')"
+docker exec mysql mysqldump -uroot -p123456 library > "library_backup_$(Get-Date -Format 'yyyyMMdd').sql"
 ```
 
 ---
@@ -428,14 +453,14 @@ uv run python manage.py collectstatic --noinput
 
 ### 11.8 数据库迁移报错
 
-如果 `migrate` 失败，可能是数据库文件损坏或版本冲突。尝试：
+如果 `migrate` 失败，可能是数据库表结构冲突。尝试：
 
 ```powershell
-# 备份现有数据库
-Copy-Item db.sqlite3 db.sqlite3.old
+# 备份现有数据
+docker exec mysql mysqldump -uroot -p123456 library > library_backup.sql
 
-# 删除旧数据库重新初始化
-Remove-Item db.sqlite3
+# 删除并重建数据库
+docker exec -i mysql mysql -uroot -p123456 < init_db.sql
 uv run python manage.py migrate
 uv run python manage.py createsuperuser
 ```

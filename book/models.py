@@ -41,7 +41,9 @@ GENDER=(
 
 BORROW_RECORD_STATUS=(
     (0,'Open'),
-    (1,'Closed')
+    (1,'Closed'),
+    (2,'Pending Return'),
+    (3,'Pending Borrow'),
 )
 
 class Category(models.Model):

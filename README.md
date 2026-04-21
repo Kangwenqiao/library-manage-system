@@ -64,7 +64,8 @@ cp .env.example .env
 - `SECRET_KEY`：Django 密钥，生产环境必须修改
 - `DEBUG`：开发环境保持 `True`
 - `ALLOWED_HOSTS`：多个值用英文逗号分隔
-- `DATABASE_URL`：默认使用 SQLite
+- `DATABASE_URL`：数据库连接地址，默认 `mysql://root:123456@127.0.0.1:3306/library`
+- `ZHIPUAI_API_KEY`：智谱 AI 接口密钥（AI 智能搜索功能需要）
 - `HOST`：Waitress 监听地址，默认 `0.0.0.0`
 - `PORT`：服务端口，默认 `8000`
 - `WAITRESS_THREADS`：Windows 和通用部署线程数，默认 `4`
@@ -77,11 +78,25 @@ uv sync
 
 ### 1.5 初始化数据库
 
+确保 MySQL 服务已启动（可通过 Docker 运行），然后执行建库脚本：
+
+```bash
+mysql -uroot -p123456 < init_db.sql
+```
+
+执行 Django 迁移创建表结构：
+
 ```bash
 uv run python manage.py migrate
 ```
 
-如需后台账号：
+导入演示数据（可选）：
+
+```bash
+mysql -uroot -p123456 library < init_data.sql
+```
+
+如需后台账号（不使用演示数据时）：
 
 ```bash
 uv run python manage.py createsuperuser
@@ -198,7 +213,7 @@ uv run python serve.py
 当前 `.gitignore` 已忽略：
 
 - 虚拟环境目录，例如 `.venv/`、`authentication/env/`
-- 本地数据库文件，例如 `db.sqlite3`
+- SQLite 数据库文件 `db.sqlite3`（项目已切换至 MySQL，此条为历史兼容）
 - 上传文件目录 `media/`
 - 收集后的静态文件目录 `staticfiles/`
 - 运行日志 `logging/*.log`

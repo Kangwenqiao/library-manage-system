@@ -164,6 +164,7 @@
                                                 {% if item.book %}
                                                     {% if item.book.quantity > 0 %}
                                                     <span class="badge badge-success">可借阅</span>
+                                                    <a href="{% url 'record_create' %}?book={{ item.book.title|urlencode }}" class="btn btn-primary btn-sm ml-2">借阅</a>
                                                     {% else %}
                                                     <span class="badge badge-danger">已借完</span>
                                                     {% endif %}

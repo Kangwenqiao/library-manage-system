@@ -13,7 +13,7 @@
                 <div class="row align-items-center">
                     <div class="col-md-12">
                         <div class="page-header-title">
-                            <h5 class="m-b-10">{% if request.user.is_superuser %}所有借阅记录{% else %}我的借阅记录{% endif %}</h5>
+                            <h5 class="m-b-10">{% if request.user.is_staff %}所有借阅记录{% else %}我的借阅记录{% endif %}</h5>
                         </div>
                     </div>
                 </div>
@@ -38,7 +38,7 @@
                                     <div class="col-8">
                                         <b>排序方式： </b>
                                         <a href="{% url 'record_list' %}?search={{search}}&orderby=id">编号</a>  |
-                                        {% if request.user.is_superuser %}
+                                        {% if request.user.is_staff %}
                                         <a href="{% url 'record_list' %}?search={{ search }}&orderby=borrower">姓名</a> |
                                         {% endif %}
                                         <a href="{% url 'record_list' %}?search={{ search }}&orderby=book">书籍</a> |
@@ -55,7 +55,7 @@
                                                        class="form-control" 
                                                        name="search",
                                                        id='search',
-                                                       placeholder="搜索书名{% if request.user.is_superuser %}或卡号{% endif %}",
+                                                       placeholder="搜索书名{% if request.user.is_staff %}或卡号{% endif %}",
                                                        value={{search}}
                                                        >
                                             </div>
@@ -68,7 +68,7 @@
                                     <table class="table">
                                         <thead>
                                             <tr>
-                                                {% if request.user.is_superuser %}
+                                                {% if request.user.is_staff %}
                                                 <th>姓名</th>
                                                 <th>卡号</th>
                                                 <th>电话号码</th>
@@ -86,7 +86,7 @@
                                             
                                             {% for record in records %}
                                             <tr>
-                                                {% if request.user.is_superuser %}
+                                                {% if request.user.is_staff %}
                                                 <td>{{record.borrower}}</td>  
                                                 <td>{{record.borrower_card}}</td>  
                                                 <td>{{record.borrower_phone_number}}</td>
@@ -95,7 +95,17 @@
                                                 <td>{{record.quantity}}</td>
                                                 <td>{{record.start_day|date:"Y-m-d"}}</td>
                                                 <td>{{record.end_day|date:"Y-m-d"}}</td>
-                                                <td>{{record.get_open_or_close_display}}</td>
+                                                <td>
+                                                    {% if record.open_or_close == 0 %}
+                                                    <span class="badge badge-primary">借阅中</span>
+                                                    {% elif record.open_or_close == 2 %}
+                                                    <span class="badge badge-warning">待确认还书</span>
+                                                    {% elif record.open_or_close == 3 %}
+                                                    <span class="badge badge-info">待审批借阅</span>
+                                                    {% else %}
+                                                    <span class="badge badge-secondary">已关闭</span>
+                                                    {% endif %}
+                                                </td>
                                                 {% if record.return_status == "Delayed" %}
                                                 <td class='table-danger'>{{record.return_status}} {{record.get_delay_number_days}} 天</td>
                                                 {% else %}
@@ -103,7 +113,7 @@
                                                 {% endif %}
                                                 <td>
                                                     <a href="{% url 'record_detail' record.pk %}" class="badge badge-warning badge-bg"><i class="feather icon-eye"></i>&nbsp;查看</a>
-                                                    {% if request.user.is_superuser %}
+                                                    {% if request.user.is_staff %}
                                                     <a href="{% url 'record_delete' record.pk %}" class="badge badge-danger"><i class="feather icon-trash-2"></i>&nbsp;删除</a>
                                                     {% endif %}
                                                 </td>
@@ -117,7 +127,7 @@
                                 </div>
                                 <div class="row">
                                     <div class='col-6'>
-                                        <a href="{% url 'record_create' %}" class='btn btn-primary'>{% if request.user.is_superuser %}添加新记录{% else %}申请借书{% endif %}</a>
+                                        <a href="{% url 'record_create' %}" class='btn btn-primary'>{% if request.user.is_staff %}添加新记录{% else %}申请借书{% endif %}</a>
                                     </div>
                                     <div class='col-6'>
       

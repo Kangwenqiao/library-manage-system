@@ -43,7 +43,7 @@ from django.contrib.contenttypes.models import ContentType
 from comment.models import Comment
 from comment.forms import CommentForm
 from notifications.signals import notify
-from .notification import send_notification
+from .notification import send_notification, send_notification_to_user
 import logging
 
 logger = logging.getLogger(__name__)
@@ -482,8 +482,6 @@ class ActivityListView(AdminRequiredMixin,ListView):
     search_value=''
     created_by=''
     order_field="-created_at"
-    all_users = User.objects.values()
-    user_list = [x['username'] for x in all_users] 
 
     # def dispatch(self, *args, **kwargs):
     #     return super(ActivityListView, self).dispatch(*args, **kwargs)
@@ -520,7 +518,7 @@ class ActivityListView(AdminRequiredMixin,ListView):
         context = super(ActivityListView, self).get_context_data(*args, **kwargs)
         context['count_total'] = self.count_total
         context['search'] = self.search_value
-        context['user_list']= self.user_list
+        context['user_list'] = list(User.objects.values_list('username', flat=True))
         context['created_by'] = self.created_by
         return context
 
@@ -738,30 +736,41 @@ class BorrowRecordCreateView(LoginRequiredMixin,CreateView):
             form.instance.borrower_phone_number = selected_member.phone_number
 
         selected_book = Book.objects.get(title=form.cleaned_data['book'])
-        form.instance.book = selected_book
+        form.instance.book_link = selected_book
         form.instance.book_title = selected_book.title
         form.instance.created_by = self.request.user.username
         form.instance.start_day = form.cleaned_data['start_day']
         form.instance.end_day = form.cleaned_data['end_day']
-        form.save()
 
-        # Change field on Model Book
-        selected_book.status=0
-        selected_book.total_borrow_times+=1
-        selected_book.quantity-=int(form.cleaned_data['quantity'])
-        selected_book.save()
-
-        # Create Log 
         borrower_name = form.instance.borrower
         book_name = selected_book.title
 
-        messages.success(self.request, f" '{borrower_name}' borrowed <<{book_name}>>")
-        UserActivity.objects.create(created_by=self.request.user.username,
-                                    target_model=self.model.__name__,
-                                    detail =f" '{borrower_name}' borrowed <<{book_name}>>")
+        if self.request.user.is_staff:
+            # 管理员直接通过，扣库存
+            form.instance.open_or_close = 0
+            form.save()
+            selected_book.status = 0
+            selected_book.total_borrow_times += 1
+            selected_book.quantity -= int(form.cleaned_data['quantity'])
+            selected_book.save()
+            messages.success(self.request, f"'{borrower_name}' 已借阅《{book_name}》")
+            UserActivity.objects.create(created_by=self.request.user.username,
+                                        target_model=self.model.__name__,
+                                        detail=f"'{borrower_name}' borrowed <<{book_name}>>")
+        else:
+            # 读者提交申请，待审批，不扣库存
+            form.instance.open_or_close = 3
+            form.save()
+            send_notification(
+                self.request.user, form.instance,
+                verb=f"申请借阅《{book_name}》",
+            )
+            messages.success(self.request, "借阅申请已提交，请等待管理员审批")
+            UserActivity.objects.create(created_by=self.request.user.username,
+                                        target_model=self.model.__name__,
+                                        detail=f"'{borrower_name}' 申请借阅《{book_name}》")
 
-
-        return super(BorrowRecordCreateView,self).form_valid(form)
+        return super(BorrowRecordCreateView, self).form_valid(form)
 
  
     # def post(self,request, *args, **kwargs):
@@ -804,8 +813,7 @@ class BorrowRecordDetailView(LoginRequiredMixin,DetailView):
     # Not recommanded
     def get_context_data(self, **kwargs):
         context = super(BorrowRecordDetailView, self).get_context_data(**kwargs)
-        related_member = Member.objects.get(name=self.get_object().borrower)
-        context['related_member'] = related_member
+        context['related_member'] = Member.objects.filter(name=self.get_object().borrower).first()
         return context
 
 class BorrowRecordListView(LoginRequiredMixin,ListView):
@@ -821,7 +829,7 @@ class BorrowRecordListView(LoginRequiredMixin,ListView):
         search =self.request.GET.get("search")  
         order_by=self.request.GET.get("orderby")
         
-        if self.request.user.is_superuser:
+        if self.request.user.is_staff:
             all_records = BorrowRecord.objects.all()
         else:
             all_records = BorrowRecord.objects.filter(user=self.request.user)
@@ -872,17 +880,20 @@ class BorrowRecordDeleteView(AdminRequiredMixin,View):
 class BorrowRecordClose(AdminRequiredMixin,View):
     def get(self, request, *args, **kwargs):
 
-        close_record = BorrowRecord.objects.get(pk=self.kwargs['pk'])
+        close_record = get_object_or_404(BorrowRecord, pk=self.kwargs['pk'])
+        if close_record.open_or_close == 1:
+            return HttpResponseRedirect(reverse("record_list"))
+
         close_record.closed_by = self.request.user.username
         close_record.final_status = close_record.return_status
         close_record.delay_days = close_record.get_delay_number_days
         close_record.open_or_close = 1
         close_record.save()
-        
-        borrowed_book = close_record.book
+
+        borrowed_book = close_record.book_link
         if borrowed_book:
-            borrowed_book.quantity+=1
-            count_record_same_book = BorrowRecord.objects.filter(book=borrowed_book, open_or_close=0).count()
+            borrowed_book.quantity += 1
+            count_record_same_book = BorrowRecord.objects.filter(book_link=borrowed_book, open_or_close=0).count()
             if count_record_same_book == 0:
                 borrowed_book.status = 1
             borrowed_book.save()
@@ -892,6 +903,151 @@ class BorrowRecordClose(AdminRequiredMixin,View):
                     operation_type="info",
                     target_model=model_name,
                     detail =f"Close {model_name} '{close_record.borrower}'=>{close_record.book_title}")
+
+        # 通知借阅者：还书已确认
+        if close_record.user:
+            send_notification_to_user(
+                request.user, close_record.user, close_record,
+                verb=f"已确认归还《{close_record.book_title}》",
+            )
+
+        return HttpResponseRedirect(reverse("record_list"))
+
+
+class BorrowRecordReturnRequest(LoginRequiredMixin, View):
+    """读者申请还书，管理员收到通知后确认。"""
+    login_url = 'login'
+
+    def get(self, request, *args, **kwargs):
+        record = get_object_or_404(BorrowRecord, pk=self.kwargs['pk'])
+
+        # 只能操作自己的、状态为 Open 的记录
+        if record.user != request.user:
+            raise PermissionDenied("你只能归还自己的借阅记录")
+        if record.open_or_close != 0:
+            messages.warning(request, "该记录不在可归还状态")
+            return HttpResponseRedirect(reverse("record_list"))
+
+        record.open_or_close = 2  # Pending Return
+        record.save()
+
+        # 通知管理员
+        send_notification(
+            request.user,
+            record,
+            verb=f"申请归还《{record.book_title}》",
+        )
+
+        UserActivity.objects.create(
+            created_by=request.user.username,
+            operation_type="warning",
+            target_model="BorrowRecord",
+            detail=f"'{record.borrower}' 申请归还《{record.book_title}》",
+        )
+
+        messages.success(request, "还书申请已提交，请等待管理员确认")
+        return HttpResponseRedirect(reverse("record_list"))
+
+
+class BorrowRecordRejectReturn(AdminRequiredMixin, View):
+    """管理员拒绝还书申请，状态恢复为 Open 并通知读者。"""
+    login_url = 'login'
+
+    def get(self, request, *args, **kwargs):
+        record = get_object_or_404(BorrowRecord, pk=self.kwargs['pk'])
+        if record.open_or_close != 2:
+            return HttpResponseRedirect(reverse("record_list"))
+
+        record.open_or_close = 0  # 恢复为 Open
+        record.save()
+
+        UserActivity.objects.create(
+            created_by=request.user.username,
+            operation_type="danger",
+            target_model="BorrowRecord",
+            detail=f"拒绝还书 '{record.borrower}'=>《{record.book_title}》",
+        )
+
+        # 通知借阅者：还书被拒绝
+        if record.user:
+            send_notification_to_user(
+                request.user, record.user, record,
+                verb=f"拒绝了您归还《{record.book_title}》的申请，请联系管理员",
+            )
+
+        messages.info(request, f"已拒绝 {record.borrower} 归还《{record.book_title}》的申请")
+        return HttpResponseRedirect(reverse("record_list"))
+
+
+class BorrowRecordApproveBorrow(AdminRequiredMixin, View):
+    """管理员审批通过借阅申请，扣库存，状态改为 Open。"""
+    login_url = 'login'
+
+    def get(self, request, *args, **kwargs):
+        record = get_object_or_404(BorrowRecord, pk=self.kwargs['pk'])
+        if record.open_or_close != 3:
+            return HttpResponseRedirect(reverse("record_list"))
+
+        record.open_or_close = 0  # Open
+        record.save()
+
+        # 扣库存
+        book = record.book_link
+        if book:
+            book.status = 0
+            book.total_borrow_times += 1
+            book.quantity -= record.quantity
+            book.save()
+
+        UserActivity.objects.create(
+            created_by=request.user.username,
+            operation_type="success",
+            target_model="BorrowRecord",
+            detail=f"审批通过 '{record.borrower}' 借阅《{record.book_title}》",
+        )
+
+        if record.user:
+            send_notification_to_user(
+                request.user, record.user, record,
+                verb=f"已批准您借阅《{record.book_title}》",
+            )
+
+        messages.success(request, f"已批准 {record.borrower} 借阅《{record.book_title}》")
+        return HttpResponseRedirect(reverse("record_list"))
+
+
+class BorrowRecordRejectBorrow(AdminRequiredMixin, View):
+    """管理员拒绝借阅申请，删除记录并通知读者。"""
+    login_url = 'login'
+
+    def get(self, request, *args, **kwargs):
+        record = get_object_or_404(BorrowRecord, pk=self.kwargs['pk'])
+        if record.open_or_close != 3:
+            return HttpResponseRedirect(reverse("record_list"))
+
+        borrower = record.borrower
+        book_title = record.book_title
+        borrower_user = record.user
+
+        record.open_or_close = 1  # Closed
+        record.final_status = "Rejected"
+        record.closed_by = request.user.username
+        record.save()
+
+        UserActivity.objects.create(
+            created_by=request.user.username,
+            operation_type="danger",
+            target_model="BorrowRecord",
+            detail=f"拒绝 '{borrower}' 借阅《{book_title}》",
+        )
+
+        if borrower_user:
+            send_notification_to_user(
+                request.user, borrower_user, record,
+                verb=f"拒绝了您借阅《{book_title}》的申请",
+            )
+
+        messages.info(request, f"已拒绝 {borrower} 借阅《{book_title}》的申请")
         return HttpResponseRedirect(reverse("record_list"))
 
 
@@ -1052,7 +1208,8 @@ def ai_search(request):
             # Batch-match all recommended titles in a single query
             title_q = Q()
             for rec in recommendations:
-                t = rec.get('title', '')
+                t = rec.get('title', '').strip().strip('《》')
+                rec['title'] = t
                 if t:
                     title_q |= Q(title__icontains=t)
 
@@ -1153,7 +1310,7 @@ def EmployeeUpdate(request,pk):
 
 # Notice
 
-class NoticeListView(SuperUserRequiredMixin, ListView):
+class NoticeListView(LoginRequiredMixin, ListView):
     context_object_name = 'notices'
     template_name = 'notice_list.html'
     login_url = 'login'
@@ -1163,7 +1320,7 @@ class NoticeListView(SuperUserRequiredMixin, ListView):
         return self.request.user.notifications.unread()
 
 
-class NoticeUpdateView(SuperUserRequiredMixin,View):
+class NoticeUpdateView(LoginRequiredMixin,View):
     """Update Status of Notification"""
     # 处理 get 请求
     def get(self, request):

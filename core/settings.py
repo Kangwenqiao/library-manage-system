@@ -140,7 +140,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{(BASE_DIR_PATH / 'db.sqlite3').as_posix()}",
+        default="mysql://root:123456@127.0.0.1:3306/library",
         conn_max_age=600,
     )
 }

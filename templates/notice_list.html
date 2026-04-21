@@ -51,11 +51,15 @@
                                     <ul class="list-group">
                                         {% for notice in notices %}
                                             <li class="list-group-item" id="notice_link">
-                                                <p><span style="color: #5897fb;">
-                                                    {{ notice.actor }} 
-                                                </span>
-                                                {{ notice.verb }} 
-                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ notice.timestamp|date:"Y/m/d H:i" }}</p>
+                                                <p>
+                                                    <span style="color: #5897fb;">{{ notice.actor }}</span>
+                                                    {% if notice.target %}
+                                                    <a href="{% url 'record_detail' notice.target.pk %}">{{ notice.verb }}</a>
+                                                    {% else %}
+                                                    {{ notice.verb }}
+                                                    {% endif %}
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ notice.timestamp|date:"Y/m/d H:i" }}
+                                                </p>
                                             </li>
                                         {% endfor %}
                                     </ul>

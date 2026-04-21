@@ -25,13 +25,8 @@ def check_user_group(user,group_name):
 def allowed_groups(group_name=[]):
 	def decorator(view_func):
 		def wrapper_func(request, *args, **kwargs):
-            
-
-			group = None
-			if request.user.groups.exists():
-				group = request.user.groups.all()[0].name
-
-			if group in group_name:
+			user_groups = set(request.user.groups.values_list('name', flat=True))
+			if user_groups & set(group_name):
 				return view_func(request, *args, **kwargs)
 			else:
 				raise PermissionDenied("You do not have permission to access this Page")
