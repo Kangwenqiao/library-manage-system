@@ -1292,6 +1292,11 @@ class EmployeeView(SuperUserRequiredMixin,ListView):
     context_object_name = 'employees'
     template_name = 'book/employees.html'
 
+    def get_queryset(self):
+        return User.objects.filter(
+            Q(is_staff=True) | Q(is_superuser=True)
+        ).distinct().order_by('username')
+
     # def get(self, request):
     #     # check_superuser(request.user)
     #     return super(EmployeeView, self).get(self,request)
@@ -1303,6 +1308,10 @@ class EmployeeDetailView(SuperUserRequiredMixin,DetailView):
     template_name = 'book/employee_detail.html'
     login_url = 'login'
 
+    def get_queryset(self):
+        return User.objects.filter(
+            Q(is_staff=True) | Q(is_superuser=True)
+        ).distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1313,7 +1322,10 @@ class EmployeeDetailView(SuperUserRequiredMixin,DetailView):
 @user_passes_test(lambda u: u.is_superuser)
 @login_required(login_url='login')
 def EmployeeUpdate(request, pk):
-    current_user = get_object_or_404(User, pk=pk)
+    current_user = get_object_or_404(
+        User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).distinct(),
+        pk=pk,
+    )
     if request.method == 'POST':
         form = EmployeeEditForm(request.POST, instance=current_user)
         if form.is_valid():
